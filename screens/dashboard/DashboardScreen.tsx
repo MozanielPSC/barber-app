@@ -4,7 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Badge, Card, CardContent, CardHeader } from '../../components/ui';
 import { DashboardKPIs } from '../../types';
 
-export default function DashboardScreen() {
+interface DashboardScreenProps {
+  navigation?: any;
+}
+
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -198,7 +202,7 @@ export default function DashboardScreen() {
       </ScrollView>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
