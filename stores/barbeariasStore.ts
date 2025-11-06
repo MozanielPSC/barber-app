@@ -8,8 +8,8 @@ interface BarbeariasStore extends BarbeariasState {
   loadBarbearias: () => Promise<void>;
   setBarbeariaAtual: (barbearia: Barbearia | null) => Promise<void>;
   createBarbearia: (data: any) => Promise<void>;
-  updateBarbearia: (id: number, data: any) => Promise<void>;
-  deleteBarbearia: (id: number) => Promise<void>;
+  updateBarbearia: (id: string, data: any) => Promise<void>;
+  deleteBarbearia: (id: string) => Promise<void>;
   loadBarbeariaSelecionada: () => Promise<void>;
   clearSelection: () => Promise<void>;
 }
@@ -87,7 +87,7 @@ export const useBarbeariasStore = create<BarbeariasStore>()(
     }
   },
 
-  updateBarbearia: async (id: number, data: any) => {
+  updateBarbearia: async (id: string, data: any) => {
     set({ isLoading: true });
     try {
       const barbearia = await barbeariasService.updateBarbearia(id, data);
@@ -102,7 +102,7 @@ export const useBarbeariasStore = create<BarbeariasStore>()(
     }
   },
 
-  deleteBarbearia: async (id: number) => {
+  deleteBarbearia: async (id: string) => {
     set({ isLoading: true });
     try {
       await barbeariasService.deleteBarbearia(id);

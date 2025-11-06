@@ -34,7 +34,7 @@ export default function BarbeariasScreen() {
     router.push('/barbearias/novo');
   };
 
-  const handleBarbeariaPress = (barbeariaId: number | string) => {
+  const handleBarbeariaPress = (barbeariaId: string) => {
     router.push(`/barbearias/${barbeariaId}`);
   };
 
@@ -92,7 +92,17 @@ export default function BarbeariasScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-          <View style={styles.searchContainer}>
+        <View style={styles.headerTop}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={24} color="#111827" />
+          </TouchableOpacity>
+          <View style={styles.headerTitles}>
+            <Text style={styles.headerTitle}>Barbearias</Text>
+            <Text style={styles.headerSubtitle}>Gerencie suas unidades</Text>
+          </View>
+        </View>
+        
+        <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
@@ -107,6 +117,7 @@ export default function BarbeariasScreen() {
             </TouchableOpacity>
           )}
         </View>
+        
         {isOwner && (
           <TouchableOpacity style={styles.newButton} onPress={handleNovo}>
             <Ionicons name="add" size={20} color="#FFFFFF" />
@@ -162,11 +173,31 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 16,
-    paddingTop: 20,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
     gap: 12,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  backBtn: {
+    padding: 4,
+  },
+  headerTitles: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 2,
   },
   searchContainer: {
     flexDirection: 'row',

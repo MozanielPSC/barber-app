@@ -5,7 +5,7 @@ export const barbeariasService = {
     return apiClient.get('/barbearias');
   },
 
-  getBarbearia: (id: number) => {
+  getBarbearia: (id: string) => {
     return apiClient.get(`/barbearias/${id}`);
   },
 
@@ -13,11 +13,11 @@ export const barbeariasService = {
     return apiClient.post('/barbearias', data);
   },
 
-  updateBarbearia: (id: number, data: any) => {
+  updateBarbearia: (id: string, data: any) => {
     return apiClient.put(`/barbearias/${id}`, data);
   },
 
-  deleteBarbearia: (id: number) => {
+  deleteBarbearia: (id: string) => {
     return apiClient.delete(`/barbearias/${id}`);
   },
 };

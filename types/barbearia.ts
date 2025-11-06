@@ -1,18 +1,22 @@
 import { DiasSemana } from './enums';
 
 export interface Barbearia {
-  id: number;
+  id: string; // UUID
   nome: string;
-  endereco: string;
-  telefone: string;
+  codigo?: string; // Código da barbearia (ex: BARBER)
+  usuario_id?: string; // UUID do proprietário
+  endereco?: string;
+  telefone?: string;
   email?: string;
-  horario_funcionamento: string;
-  dias_funcionamento: DiasSemana[];
+  horario_funcionamento?: string;
+  dias_funcionamento?: DiasSemana[];
   foto?: string;
-  ativa: boolean;
-  proprietario_id: number;
-  created_at: string;
-  updated_at: string;
+  criado_em?: string; // ISO 8601
+  atualizado_em?: string; // ISO 8601
+  // Campos antigos mantidos para compatibilidade
+  proprietario_id?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Permissao {

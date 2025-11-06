@@ -21,19 +21,19 @@ export default function MainLayout() {
     if (user.tipo === 'colaborador' && user.barbearia_id) {
       const { useBarbeariasStore } = require('@/stores');
       const { setBarbeariaAtual } = useBarbeariasStore.getState();
-      setBarbeariaAtual({
-        id: user.barbearia_id,
-        nome: user.nome_barbearia || 'Barbearia',
-        endereco: '',
-        telefone: '',
-        horario_funcionamento: '',
-        dias_funcionamento: [],
-        ativa: true,
-        proprietario_id: 0,
-        created_at: '',
-        updated_at: '',
-      });
-    }
+        setBarbeariaAtual({
+          id: user.barbearia_id,
+          nome: user.nome_barbearia || 'Barbearia',
+          endereco: '',
+          telefone: '',
+          horario_funcionamento: '',
+          dias_funcionamento: [],
+          ativa: true,
+          proprietario_id: 0,
+          created_at: '',
+          updated_at: '',
+        });
+      }
   }, [user, barbeariaAtual, isHydrated]);
 
   // Verifica autenticação e redireciona se necessário
