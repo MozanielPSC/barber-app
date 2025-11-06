@@ -27,12 +27,22 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const response = await authService.login(email, password);
           await apiClient.setToken(response.token);
+          
+          console.log('✅ Login realizado com sucesso:', {
+            user: response.user.nome,
+            tipo: response.user.tipo,
+            hasToken: !!response.token
+          });
+          
           set({
             user: response.user,
             token: response.token,
             isAuthenticated: true,
             isLoading: false,
           });
+          
+          // Aguarda um pouquinho para garantir que o persist salvou
+          await new Promise(resolve => setTimeout(resolve, 50));
           
           // Se for proprietário, carrega barbearias
           if (response.user.tipo === 'proprietario') {
@@ -51,12 +61,22 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const response = await authService.loginColaborador(email, password, codigoBarbearia);
           await apiClient.setToken(response.token);
+          
+          console.log('✅ Login de colaborador realizado:', {
+            user: response.user.nome,
+            barbearia_id: response.user.barbearia_id,
+            hasToken: !!response.token
+          });
+          
           set({
             user: response.user,
             token: response.token,
             isAuthenticated: true,
             isLoading: false,
           });
+          
+          // Aguarda um pouquinho para garantir que o persist salvou
+          await new Promise(resolve => setTimeout(resolve, 50));
           
           // Para colaboradores, define a barbearia automaticamente
           if (response.user.tipo === 'colaborador' && response.user.barbearia_id) {
@@ -157,11 +177,15 @@ export const useAuthStore = create<AuthStore>()(
         isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {
+        console.log('🔄 Reidratando authStore...');
         // Quando o estado for restaurado, sincroniza o token com o apiClient
         if (state?.token) {
+          console.log('✅ Token encontrado na storage, sincronizando com apiClient');
           apiClient.setToken(state.token).catch((error) => {
-            console.error('Erro ao sincronizar token com apiClient:', error);
+            console.error('❌ Erro ao sincronizar token com apiClient:', error);
           });
+        } else {
+          console.log('⚠️ Nenhum token encontrado na storage');
         }
       },
     }

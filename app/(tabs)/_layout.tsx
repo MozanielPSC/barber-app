@@ -3,68 +3,65 @@ import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { Header } from '@/components/navigation/Header';
 import { useAuthStore, useBarbeariasStore } from '@/stores';
-import { apiClient } from '@/services';
+import { useStoreHydration } from '@/hooks/use-store-hydration';
 
 export default function MainLayout() {
   const router = useRouter();
   const segments = useSegments();
   const { user, isAuthenticated, token } = useAuthStore();
   const { barbeariaAtual } = useBarbeariasStore();
-  const [isHydrated, setIsHydrated] = useState(false);
+  const isHydrated = useStoreHydration();
+  const [hasRedirected, setHasRedirected] = useState(false);
 
-  // Aguarda a hidratação do persist antes de verificar autenticação
+  // Configura barbearia do colaborador assim que possível
   useEffect(() => {
-    // Verifica se já está hidratado
-    const checkHydration = async () => {
-      // Aguarda um pouco para garantir que o persist terminou
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      const state = useAuthStore.getState();
-      if (state.token) {
-        await apiClient.setToken(state.token);
-      }
-      setIsHydrated(true);
-    };
+    if (!isHydrated || !user || barbeariaAtual) return;
 
-    checkHydration();
-  }, []);
+    // Se for colaborador, configura barbearia automaticamente do user
+    if (user.tipo === 'colaborador' && user.barbearia_id) {
+      const { useBarbeariasStore } = require('@/stores');
+      const { setBarbeariaAtual } = useBarbeariasStore.getState();
+      setBarbeariaAtual({
+        id: user.barbearia_id,
+        nome: user.nome_barbearia || 'Barbearia',
+        endereco: '',
+        telefone: '',
+        horario_funcionamento: '',
+        dias_funcionamento: [],
+        ativa: true,
+        proprietario_id: 0,
+        created_at: '',
+        updated_at: '',
+      });
+    }
+  }, [user, barbeariaAtual, isHydrated]);
 
+  // Verifica autenticação e redireciona se necessário
   useEffect(() => {
-    // Só verifica autenticação após hidratação
+    // Só verifica após hidratação
     if (!isHydrated) return;
 
-    if (!isAuthenticated || !token) {
+    const inTabsRoute = segments[0] === '(tabs)';
+    
+    // Se não está autenticado e está em rota de tabs, redireciona para login UMA VEZ
+    if ((!isAuthenticated || !token) && inTabsRoute && !hasRedirected) {
+      setHasRedirected(true);
       router.replace('/login');
       return;
     }
 
-    // Se for proprietário e não tem barbearia selecionada, redireciona
-    if (user?.tipo === 'proprietario' && !barbeariaAtual) {
+    // Se está autenticado como proprietário sem barbearia, redireciona para seleção
+    if (isAuthenticated && user?.tipo === 'proprietario' && !barbeariaAtual && inTabsRoute && !hasRedirected) {
+      setHasRedirected(true);
       router.replace('/select-barbearia');
       return;
     }
 
-    // Se for colaborador, verifica se tem barbearia (deve ter)
-    if (user?.tipo === 'colaborador' && !barbeariaAtual) {
-      // Tenta carregar do user
-      const { useBarbeariasStore } = require('@/stores');
-      const { setBarbeariaAtual } = useBarbeariasStore.getState();
-      if (user.barbearia_id) {
-        setBarbeariaAtual({
-          id: user.barbearia_id,
-          nome: user.nome_barbearia || 'Barbearia',
-          endereco: '',
-          telefone: '',
-          horario_funcionamento: '',
-          dias_funcionamento: [],
-          ativa: true,
-          proprietario_id: 0,
-          created_at: '',
-          updated_at: '',
-        });
-      }
+    // Reseta o flag quando volta a estar autenticado (caso tenha feito logout e login novamente)
+    if (isAuthenticated && token && hasRedirected) {
+      setHasRedirected(false);
     }
-  }, [isAuthenticated, user, barbeariaAtual, isHydrated, token, router]);
+  }, [isAuthenticated, user, barbeariaAtual, isHydrated, token, router, segments, hasRedirected]);
 
   // Mostra loading enquanto não está hidratado
   if (!isHydrated) {

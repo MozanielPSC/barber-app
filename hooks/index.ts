@@ -342,3 +342,6 @@ export const useThrottle = <T>(value: T, limit: number): T => {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBarbeariasStore, useNotificationsStore } from '../stores';
 import { isValidCPF } from '../utils';
+
+// Export do hook de hidratação
+export * from './use-store-hydration';

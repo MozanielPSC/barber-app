@@ -110,8 +110,16 @@ class ApiClient {
 
   private async handleUnauthorized() {
     await this.clearToken();
-    // Aqui você pode navegar para a tela de login
-    // navigation.navigate('Login');
+    
+    // Força logout no authStore para evitar loops
+    try {
+      const { useAuthStore } = await import('../stores/authStore');
+      const { logout } = useAuthStore.getState();
+      // Não aguarda o logout para evitar loops
+      logout().catch(() => {});
+    } catch (error) {
+      console.error('Erro ao fazer logout após 401:', error);
+    }
   }
 
   private handleValidationErrors(errors: Record<string, string[]>) {

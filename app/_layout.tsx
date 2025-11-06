@@ -6,45 +6,67 @@ import { View, ActivityIndicator } from 'react-native';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useStoreHydration } from '@/hooks/use-store-hydration';
 import { DrawerProvider } from '@/components/navigation/DrawerProvider';
 import { useAuthStore } from '@/stores';
-import { apiClient } from '@/services';
 
-export const unstable_settings = {
-  initialRouteName: '(tabs)',
-};
+// Removido initialRouteName para permitir que a lógica de autenticação
+// determine a rota inicial correta após a hidratação
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
-  const { isAuthenticated, token } = useAuthStore();
-  const [isHydrated, setIsHydrated] = useState(false);
+  const segments = useSegments();
+  const { isAuthenticated, token, user } = useAuthStore();
+  const isHydrated = useStoreHydration();
+  const [hasInitialRedirect, setHasInitialRedirect] = useState(false);
 
-  // Aguarda a hidratação do persist
+  // Reseta o flag de redirecionamento quando o estado de autenticação muda
   useEffect(() => {
-    // Verifica se já está hidratado
-    const checkHydration = async () => {
-      // Aguarda um pouco para garantir que o persist terminou
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      const state = useAuthStore.getState();
-      if (state.token) {
-        await apiClient.setToken(state.token);
-      }
-      setIsHydrated(true);
-    };
+    setHasInitialRedirect(false);
+  }, [isAuthenticated, token]);
 
-    checkHydration();
-  }, []);
-
-  // Redireciona para login se não estiver autenticado (após hidratação)
+  // Gerencia redirecionamento inicial baseado em autenticação
   useEffect(() => {
     if (!isHydrated) return;
 
-    if (!isAuthenticated || !token) {
-      router.replace('/login');
+    const currentSegment = segments[0];
+    
+    // Rotas públicas que não precisam de autenticação
+    const publicRoutes = ['login', 'login-colaborador', 'registro', 'auth'];
+    const isPublicRoute = publicRoutes.includes(currentSegment);
+    const isNotFoundRoute = currentSegment === '+not-found';
+    
+    // Se está autenticado
+    if (isAuthenticated && token) {
+      // Se está em rota pública, redireciona para tabs
+      if (isPublicRoute && !hasInitialRedirect) {
+        setHasInitialRedirect(true);
+        router.replace('/(tabs)');
+      }
+      // Se acabou de hidratar e não tem rota definida, vai para tabs
+      else if (!currentSegment && !hasInitialRedirect) {
+        setHasInitialRedirect(true);
+        router.replace('/(tabs)');
+      }
+      return;
     }
-  }, [isHydrated, isAuthenticated, token, router]);
+    
+    // Se não está autenticado
+    if (!isAuthenticated || !token) {
+      // Se está tentando acessar rota protegida, redireciona para login
+      if (!isPublicRoute && !isNotFoundRoute && !hasInitialRedirect) {
+        setHasInitialRedirect(true);
+        router.replace('/login');
+      }
+      // Se acabou de hidratar e não tem rota definida, vai para login
+      else if (!currentSegment && !hasInitialRedirect) {
+        setHasInitialRedirect(true);
+        router.replace('/login');
+      }
+      return;
+    }
+  }, [isAuthenticated, token, isHydrated, segments, hasInitialRedirect, router]);
 
   // Mostra loading enquanto não está hidratado
   if (!isHydrated) {
@@ -67,6 +89,7 @@ export default function RootLayout() {
           <Stack.Screen name="barbearias" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          <Stack.Screen name="+not-found" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
