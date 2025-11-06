@@ -2,10 +2,10 @@
 export enum StatusAgendamento {
   AGENDADO = 'agendado',
   CONFIRMADO = 'confirmado',
-  EM_ATENDIMENTO = 'em_atendimento',
+  EM_ANDAMENTO = 'em_andamento',
   CONCLUIDO = 'concluido',
   CANCELADO = 'cancelado',
-  FALTOU = 'faltou'
+  NAO_COMPARECEU = 'nao_compareceu'
 }
 
 export enum DiasSemana {

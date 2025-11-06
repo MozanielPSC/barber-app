@@ -60,14 +60,19 @@ Formulário para cadastrar novo cliente manualmente ou via áudio (IA processa).
 
 **Request**: FormData com arquivo de áudio
 
-**Response**: Cliente criado (mesmo formato)
+**Content-Type**: `multipart/form-data`
+
+**Body:**
+- `audio`: Arquivo de áudio (formato suportado pela API)
+- `barbearia_id`: UUID da barbearia
+
+**Response**: Cliente criado (mesmo formato de `POST /clientes`)
+
+**Nota**: Esta rota processa o áudio via IA e extrai automaticamente os dados do cliente (nome, telefone, origem, etc.)
 
 ## Stores
 
 - `useClientesStore.addClient(clientData)`
 - `useAppStore.addNotification()` para mensagens
 
-## Implementação React Native
-
-Use `react-hook-form` para validação, `react-native-audio-recorder-player` para áudio.
 

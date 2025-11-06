@@ -1,16 +1,39 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { Header } from '@/components/navigation/Header';
 import { useAuthStore, useBarbeariasStore } from '@/stores';
+import { apiClient } from '@/services';
 
 export default function MainLayout() {
   const router = useRouter();
   const segments = useSegments();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, token } = useAuthStore();
   const { barbeariaAtual } = useBarbeariasStore();
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Aguarda a hidratação do persist antes de verificar autenticação
+  useEffect(() => {
+    // Verifica se já está hidratado
+    const checkHydration = async () => {
+      // Aguarda um pouco para garantir que o persist terminou
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      const state = useAuthStore.getState();
+      if (state.token) {
+        await apiClient.setToken(state.token);
+      }
+      setIsHydrated(true);
+    };
+
+    checkHydration();
+  }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Só verifica autenticação após hidratação
+    if (!isHydrated) return;
+
+    if (!isAuthenticated || !token) {
       router.replace('/login');
       return;
     }
@@ -41,7 +64,17 @@ export default function MainLayout() {
         });
       }
     }
-  }, [isAuthenticated, user, barbeariaAtual]);
+  }, [isAuthenticated, user, barbeariaAtual, isHydrated, token, router]);
+
+  // Mostra loading enquanto não está hidratado
+  if (!isHydrated) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#6366F1" />
+      </View>
+    );
+  }
+
   return (
     <Stack
       screenOptions={{

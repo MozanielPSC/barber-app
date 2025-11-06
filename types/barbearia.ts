@@ -15,17 +15,37 @@ export interface Barbearia {
   updated_at: string;
 }
 
+export interface Permissao {
+  id: string;
+  colaborador_id: string;
+  recurso: string;
+  pode_visualizar: boolean;
+  pode_criar: boolean;
+  pode_editar: boolean;
+  pode_excluir: boolean;
+  criado_em: string;
+  atualizado_em: string;
+}
+
 export interface Colaborador {
-  id: number;
+  id: string;
   nome: string;
-  email: string;
-  telefone: string;
-  foto_perfil?: string;
+  barbearia_id: string;
+  usuario_id: string;
+  funcao?: string;
   ativo: boolean;
-  barbearia_id: number;
+  criado_em: string;
+  atualizado_em: string;
   permissoes: Permissao[];
-  created_at: string;
-  updated_at: string;
+  usuario?: {
+    foto_perfil_url?: string | null;
+  };
+  // Campos opcionais para compatibilidade
+  email?: string;
+  telefone?: string;
+  foto_perfil?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Client {

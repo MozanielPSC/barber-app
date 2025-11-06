@@ -108,10 +108,9 @@ export default function NovoAgendamentoScreen() {
       if (exists) {
         return prev.filter((s) => s.id !== servico.id);
       }
-      // Garante que o preço seja um número válido
-      const preco = typeof servico.preco === 'string' 
-        ? parseFloat(servico.preco) 
-        : (servico.preco || 0);
+      // Usa preco_padrao que é o campo correto da API
+      const precoStr = servico.preco_padrao ?? servico.preco ?? '0';
+      const preco = typeof precoStr === 'string' ? parseFloat(precoStr) : (precoStr || 0);
       
       return [...prev, {
         id: servico.id,
@@ -502,6 +501,11 @@ export default function NovoAgendamentoScreen() {
             <ScrollView style={styles.modalList}>
               {servicos.map((servico) => {
                 const isSelected = servicosSelecionados.some((s) => s.id === servico.id);
+                
+                // Usa preco_padrao que é o campo correto da API
+                const preco = servico.preco_padrao ?? servico.preco ?? 0;
+                const precoNumero = typeof preco === 'string' ? parseFloat(preco) : (preco || 0);
+                
                 return (
                   <TouchableOpacity
                     key={servico.id}
@@ -521,10 +525,13 @@ export default function NovoAgendamentoScreen() {
                         {servico.nome}
                       </Text>
                       <Text style={styles.servicoPreco}>
-                        {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL',
-                        }).format(typeof servico.preco === 'string' ? parseFloat(servico.preco) || 0 : servico.preco || 0)}
+                        {isNaN(precoNumero) 
+                          ? 'Preço não disponível'
+                          : new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            }).format(precoNumero)
+                        }
                       </Text>
                     </View>
                     {isSelected && (

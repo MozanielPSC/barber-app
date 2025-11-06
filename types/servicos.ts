@@ -1,13 +1,20 @@
 export interface Service {
-  id: number;
+  id: string;
+  usuario_id?: string;
+  barbearia_id: string;
   nome: string;
   descricao?: string;
   duracao_minutos: number;
-  preco: number;
-  ativo: boolean;
-  barbearia_id: number;
-  created_at: string;
-  updated_at: string;
+  preco_padrao: string; // API retorna como string
+  percentual_comissao_executor?: string;
+  percentual_comissao_assistente?: string;
+  percentual_comissao_indicacao?: string;
+  meta_diaria_qtd?: number;
+  ativo?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  // Campo opcional para compatibilidade
+  preco?: number | string;
 }
 
 export interface Product {

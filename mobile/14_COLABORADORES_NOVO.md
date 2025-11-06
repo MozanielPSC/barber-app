@@ -126,11 +126,33 @@ Cada recurso tem um card com grid de 4 colunas (Visualizar, Criar, Editar, Exclu
 }
 ```
 
+**Response:**
+```json
+{
+  "id": "string",
+  "nome": "string",
+  "funcao": "string",
+  "email": "string | null",
+  "barbearia_id": "string",
+  "ativo": true,
+  "permissoes": {
+    "atendimentos": {
+      "pode_visualizar": true,
+      "pode_criar": true,
+      "pode_editar": true,
+      "pode_excluir": false
+    }
+    // ... outros recursos
+  }
+}
+```
+
 **Nota**: `email`, `senha` e `permissoes` são opcionais. Se `email` e `senha` não forem fornecidos, o colaborador não terá acesso ao sistema.
 
 ## Stores
 
-- `useColaboradoresStore`: `criarColaborador(payload)`
+- `useColaboradoresStore`: 
+  - `criarColaborador(payload)`: Cria colaborador via `POST /colaboradores`
 - `useBarbeariasStore`: Para obter `barbearia_id`
 - `useAppStore`: Notificações
 

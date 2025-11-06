@@ -50,20 +50,20 @@ const menuItems: MenuItem[] = [
       {
         id: 'clientes',
         label: 'Clientes',
-        icon: 'people',
+        icon: 'account-group',
         route: '/(tabs)/clientes',
       },
       {
         id: 'colaboradores',
         label: 'Colaboradores',
-        icon: 'people-circle',
+        icon: 'account-multiple',
         route: '/colaboradores',
         requiresOwner: true,
       },
       {
         id: 'servicos',
         label: 'Serviços',
-        icon: 'cut',
+        icon: 'content-cut',
         route: '/(tabs)/servicos',
       },
       {

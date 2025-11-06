@@ -11,69 +11,86 @@ Lista completa e cronológica de histórico de atendimentos e compras do cliente
 - **Título**: "Histórico do Cliente"
 - **Subtítulo**: Nome do cliente
 
-### Filtros
-- **Tipo**: Tabs ou select
-  - Todos
-  - Atendimentos
-  - Compras
-- **Período**: 
-  - Data Início (date picker)
-  - Data Fim (date picker)
-- **Botão**: "Limpar Filtros"
+### Resumo (Card de Estatísticas)
+- **Grid 4 colunas**:
+  - Total de Atendimentos (azul)
+  - Atendimentos Concluídos (verde)
+  - Atendimentos Cancelados (vermelho)
+  - Total Gasto (roxo)
+- **Grid 3 colunas**:
+  - Total Gasto em Serviços
+  - Total Gasto em Produtos
+  - Colaboradores que Atenderam
 
-### Resumo
-- **Card**: Total de Atendimentos
-- **Card**: Total de Compras
-- **Card**: Valor Total Gasto
-
-### Lista Cronológica
-- **Agrupamento**: Por data (mais recente primeiro)
+### Timeline de Atendimentos
+- **Layout**: Timeline vertical com linha conectando os atendimentos
 - **Cada Item**:
-  - **Data**: Formato "DD/MM/YYYY"
-  - **Tipo**: Badge (Atendimento/Compra)
-  - **Informações**:
-    - **Atendimento**: Colaborador, Serviços realizados, Total
-    - **Compra**: Produtos, Quantidades, Total
-  - **Ações**: Botão "Ver Detalhes" (navega para detalhes do atendimento)
+  - **Ponto na Timeline**: Cor baseada no status (verde=concluído, azul=agendado, amarelo=em_andamento, vermelho=cancelado, laranja=não_compareceu)
+  - **Card do Atendimento**:
+    - **Header**: Avatar do colaborador (ou iniciais), nome, função, data e horário
+    - **Status**: Badge colorido com o status
+    - **Serviços**: Lista de serviços realizados com preços
+    - **Produtos**: Lista de produtos comprados com quantidades e preços
+    - **Total**: Valor total calculado (serviços + produtos)
+    - **Ações**: Link para ver detalhes do atendimento
+- **Ordenação**: Mais recente primeiro
+- **Estado Vazio**: Ícone + mensagem "Nenhum atendimento encontrado"
 
 ## Rotas da API
 
 ### GET /clientes/{id}/historico
 
+**Path Params:**
+- `id`: UUID do cliente
+
 **Query Params:**
-- `tipo` (opcional: "atendimento" | "compra")
-- `data_inicio` (opcional, formato: YYYY-MM-DD)
-- `data_fim` (opcional, formato: YYYY-MM-DD)
+- `barbearia_id` (obrigatório)
 
 **Response:**
 ```json
 {
-  "resumo": {
-    "total_atendimentos": 0,
-    "total_compras": 0,
-    "valor_total_gasto": 0
+  "cliente": {
+    "id": "string",
+    "nome": "string",
+    "telefone": "string"
   },
-  "historico": [
+  "estatisticas": {
+    "total_atendimentos": 0,
+    "atendimentos_concluidos": 0,
+    "atendimentos_cancelados": 0,
+    "total_gasto_geral": 0.00,
+    "total_gasto_servicos": 0.00,
+    "total_gasto_produtos": 0.00,
+    "colaboradores_que_atenderam": 0
+  },
+  "atendimentos": [
     {
       "id": "string",
-      "tipo": "atendimento" | "compra",
-      "data": "YYYY-MM-DD",
-      "colaborador_nome": "string | null",
+      "data_atendimento": "YYYY-MM-DD",
+      "horario_inicio": "HH:MM:SS",
+      "horario_fim": "HH:MM:SS",
+      "status": "agendado" | "em_andamento" | "concluido" | "cancelado" | "nao_compareceu",
+      "colaborador": {
+        "id": "string",
+        "nome": "string",
+        "funcao": "string",
+        "foto_perfil_url_assinada": "string | null"
+      },
       "servicos": [
         {
+          "id": "string",
           "nome": "string",
-          "preco": 0
+          "preco": "0.00"
         }
       ],
       "produtos": [
         {
+          "id": "string",
           "nome": "string",
           "quantidade": 0,
-          "preco_unitario": 0
+          "preco": "0.00"
         }
-      ],
-      "total": 0,
-      "atendimento_id": "string | null"
+      ]
     }
   ]
 }
@@ -81,7 +98,8 @@ Lista completa e cronológica de histórico de atendimentos e compras do cliente
 
 ## Stores
 
-- `useClientesStore`: `loadHistorico(id, filters)`
-- `useAtendimentosStore`: Para navegar para detalhes
+- **Não há store específica**: A página faz chamada direta à API usando `useApi`
+- `useAtendimentosStore`: Para navegar para detalhes do atendimento
+- `useBarbeariasStore`: Para obter `barbearia_id`
 
 

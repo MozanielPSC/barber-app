@@ -15,12 +15,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAgendamentosStore, useColaboradoresStore, useBarbeariasStore } from '../../stores';
 import { Card, CardContent } from '../../components/ui';
 import { Agendamento } from '../../types';
+import { StatusAgendamento } from '../../types/enums';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = 120;
 const TIME_SLOT_HEIGHT = 60;
 const START_HOUR = 8;
 const END_HOUR = 20;
+
+type ViewMode = 'dia' | 'semana' | 'mes';
 
 // Gera slots de horário de 30 em 30 minutos
 const generateTimeSlots = () => {
@@ -40,21 +43,25 @@ const getWeekStart = (date: Date): Date => {
   return new Date(d.setDate(diff));
 };
 
-// Função para formatar range da semana
-const formatWeekRange = (weekStart: Date): string => {
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 6);
-  
-  const startStr = weekStart.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' });
-  const endStr = weekEnd.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' });
-  
-  return `${startStr} - ${endStr}`;
+// Função para obter início do mês
+const getMonthStart = (date: Date): Date => {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
 };
 
-// Função para obter dia da semana
-const getDayOfWeek = (date: Date): number => {
-  const day = date.getDay();
-  return day === 0 ? 6 : day - 1; // Segunda = 0, Domingo = 6
+// Função para formatar range
+const formatDateRange = (start: Date, end: Date, mode: ViewMode): string => {
+  if (mode === 'dia') {
+    return start.toLocaleDateString('pt-BR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+  
+  const startStr = start.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' });
+  const endStr = end.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' });
+  return `${startStr} - ${endStr}`;
 };
 
 // Função para formatar data
@@ -67,26 +74,56 @@ export default function AgendaScreen() {
   const { barbeariaAtual } = useBarbeariasStore();
   const { colaboradores, loadColaboradores } = useColaboradoresStore();
   const { agendamentos, isLoading, loadAgendamentos } = useAgendamentosStore();
-  const [weekStart, setWeekStart] = useState(getWeekStart(new Date()));
+  const [viewMode, setViewMode] = useState<ViewMode>('semana');
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
   const timeSlots = generateTimeSlots();
+
+  // Calcula as datas baseado no modo de visualização
+  const getDatesForView = () => {
+    if (viewMode === 'dia') {
+      return [new Date(currentDate)];
+    } else if (viewMode === 'semana') {
+      const weekStart = getWeekStart(currentDate);
+      return Array.from({ length: 7 }).map((_, i) => {
+        const date = new Date(weekStart);
+        date.setDate(date.getDate() + i);
+        return date;
+      });
+    } else {
+      // Mês
+      const monthStart = getMonthStart(currentDate);
+      const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
+      const daysInMonth = monthEnd.getDate();
+      return Array.from({ length: daysInMonth }).map((_, i) => {
+        const date = new Date(monthStart);
+        date.setDate(date.getDate() + i);
+        return date;
+      });
+    }
+  };
+
+  const dates = getDatesForView();
+  const startDate = dates[0];
+  const endDate = dates[dates.length - 1];
 
   useEffect(() => {
     if (barbeariaAtual?.id) {
       loadColaboradores({ barbearia_id: barbeariaAtual.id }).catch(() => {});
-      loadWeekAgendamentos();
     }
-  }, [barbeariaAtual, weekStart]);
+  }, [barbeariaAtual]);
 
-  const loadWeekAgendamentos = async () => {
+  useEffect(() => {
+    if (barbeariaAtual?.id) {
+      loadAgendamentosForView();
+    }
+  }, [barbeariaAtual, currentDate, viewMode]);
+
+  const loadAgendamentosForView = async () => {
     if (!barbeariaAtual?.id) return;
     
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 6);
-    weekEnd.setHours(23, 59, 59);
-
-    const dataInicio = weekStart.toISOString().split('T')[0];
-    const dataFim = weekEnd.toISOString().split('T')[0];
+    const dataInicio = startDate.toISOString().split('T')[0];
+    const dataFim = endDate.toISOString().split('T')[0];
 
     await loadAgendamentos({
       barbearia_id: barbeariaAtual.id,
@@ -97,53 +134,77 @@ export default function AgendaScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadWeekAgendamentos();
+    await loadAgendamentosForView();
     setRefreshing(false);
   };
 
-  const previousWeek = () => {
-    const newDate = new Date(weekStart);
-    newDate.setDate(newDate.getDate() - 7);
-    setWeekStart(newDate);
+  const previousPeriod = () => {
+    const newDate = new Date(currentDate);
+    if (viewMode === 'dia') {
+      newDate.setDate(newDate.getDate() - 1);
+    } else if (viewMode === 'semana') {
+      newDate.setDate(newDate.getDate() - 7);
+    } else {
+      newDate.setMonth(newDate.getMonth() - 1);
+    }
+    setCurrentDate(newDate);
   };
 
-  const nextWeek = () => {
-    const newDate = new Date(weekStart);
-    newDate.setDate(newDate.getDate() + 7);
-    setWeekStart(newDate);
+  const nextPeriod = () => {
+    const newDate = new Date(currentDate);
+    if (viewMode === 'dia') {
+      newDate.setDate(newDate.getDate() + 1);
+    } else if (viewMode === 'semana') {
+      newDate.setDate(newDate.getDate() + 7);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setCurrentDate(newDate);
   };
 
   const goToToday = () => {
-    setWeekStart(getWeekStart(new Date()));
+    setCurrentDate(new Date());
   };
 
-  // Gera array de dias da semana
-  const weekDays = Array.from({ length: 7 }).map((_, i) => {
-    const date = new Date(weekStart);
-    date.setDate(date.getDate() + i);
-    return date;
-  });
-
   // Encontra agendamento para um horário e colaborador específicos
-  const findAgendamento = (timeSlot: string, colaboradorId: number, dayIndex: number): Agendamento | null => {
-    const day = weekDays[dayIndex];
+  const findAgendamento = (timeSlot: string, colaboradorId: number | string, dayIndex: number): Agendamento | null => {
+    const day = dates[dayIndex];
     const [hour, minute] = timeSlot.split(':').map(Number);
     
     const dayString = day.toISOString().split('T')[0]; // YYYY-MM-DD
+    const colabIdStr = String(colaboradorId);
 
-    return agendamentos.find((ag) => {
+    const found = agendamentos.find((ag) => {
       // Compara data
-      const sameDay = ag.data_atendimento === dayString;
+      if (ag.data_atendimento !== dayString) return false;
       
       // Compara horário (formato pode ser "09:00:00" ou "09:00")
-      const [agHour, agMinute] = ag.horario_inicio.split(':').map(Number);
-      const sameTime = agHour === hour && agMinute === minute;
+      const agTimeParts = ag.horario_inicio.split(':');
+      const agHour = parseInt(agTimeParts[0], 10);
+      const agMinute = parseInt(agTimeParts[1], 10);
+      if (agHour !== hour || agMinute !== minute) return false;
       
-      // Compara colaborador
-      const sameColab = ag.colaborador_id === colaboradorId.toString() || Number(ag.colaborador_id) === colaboradorId;
+      // Compara colaborador - ambos como string para garantir match
+      const agColabId = String(ag.colaborador_id || '');
+      if (agColabId !== colabIdStr) return false;
       
-      return sameDay && sameTime && sameColab;
-    }) || null;
+      return true;
+    });
+
+    return found || null;
+  };
+
+  // Encontra todos os agendamentos de um dia e colaborador
+  const findAgendamentosForDay = (day: Date, colaboradorId: number | string): Agendamento[] => {
+    const dayString = day.toISOString().split('T')[0];
+    const colabIdStr = colaboradorId.toString();
+    
+    return agendamentos.filter((ag) => {
+      const sameDay = ag.data_atendimento === dayString;
+      const agColabId = ag.colaborador_id?.toString() || '';
+      const sameColab = agColabId === colabIdStr || agColabId === colaboradorId.toString();
+      return sameDay && sameColab;
+    });
   };
 
   const handleAgendamentoPress = (agendamento: Agendamento) => {
@@ -157,13 +218,23 @@ export default function AgendaScreen() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'agendado':
+      case StatusAgendamento.AGENDADO:
         return '#3B82F6';
+      case 'confirmado':
+      case StatusAgendamento.CONFIRMADO:
+        return '#10B981';
       case 'em_andamento':
+      case StatusAgendamento.EM_ANDAMENTO:
         return '#F59E0B';
       case 'concluido':
+      case StatusAgendamento.CONCLUIDO:
         return '#10B981';
       case 'cancelado':
+      case StatusAgendamento.CANCELADO:
         return '#EF4444';
+      case 'nao_compareceu':
+      case StatusAgendamento.NAO_COMPARECEU:
+        return '#6B7280';
       default:
         return '#6B7280';
     }
@@ -174,7 +245,7 @@ export default function AgendaScreen() {
     return date.toDateString() === today.toDateString();
   };
 
-  if (isLoading && agendamentos.length === 0) {
+  if (isLoading && (!agendamentos || agendamentos.length === 0)) {
     return (
       <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.loadingContainer}>
@@ -190,25 +261,55 @@ export default function AgendaScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Text style={styles.title}>Agenda Semanal</Text>
-          <Text style={styles.subtitle}>Visualize e gerencie os agendamentos dos colaboradores</Text>
+          <Text style={styles.title}>Agenda</Text>
+          <Text style={styles.subtitle}>Visualize e gerencie os agendamentos</Text>
         </View>
         <TouchableOpacity style={styles.novoButton} onPress={handleNovoAgendamento}>
           <Ionicons name="add" size={20} color="#FFFFFF" />
-          <Text style={styles.novoButtonText}>Novo Agendamento</Text>
+          <Text style={styles.novoButtonText}>Novo</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Navegação de Semana */}
-      <View style={styles.weekNavigation}>
-        <TouchableOpacity onPress={previousWeek} style={styles.navButton}>
+      {/* Seletor de Visualização */}
+      <View style={styles.viewModeSelector}>
+        <TouchableOpacity
+          style={[styles.viewModeButton, viewMode === 'dia' && styles.viewModeButtonActive]}
+          onPress={() => setViewMode('dia')}
+        >
+          <Text style={[styles.viewModeText, viewMode === 'dia' && styles.viewModeTextActive]}>
+            Dia
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.viewModeButton, viewMode === 'semana' && styles.viewModeButtonActive]}
+          onPress={() => setViewMode('semana')}
+        >
+          <Text style={[styles.viewModeText, viewMode === 'semana' && styles.viewModeTextActive]}>
+            Semana
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.viewModeButton, viewMode === 'mes' && styles.viewModeButtonActive]}
+          onPress={() => setViewMode('mes')}
+        >
+          <Text style={[styles.viewModeText, viewMode === 'mes' && styles.viewModeTextActive]}>
+            Mês
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Navegação */}
+      <View style={styles.navigation}>
+        <TouchableOpacity onPress={previousPeriod} style={styles.navButton}>
           <Ionicons name="chevron-back" size={24} color="#374151" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={goToToday} style={styles.weekRange}>
-          <Text style={styles.weekRangeText}>{formatWeekRange(weekStart)}</Text>
+        <TouchableOpacity onPress={goToToday} style={styles.dateRange}>
+          <Text style={styles.dateRangeText}>
+            {formatDateRange(startDate, endDate, viewMode)}
+          </Text>
           <Text style={styles.todayText}>Hoje</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={nextWeek} style={styles.navButton}>
+        <TouchableOpacity onPress={nextPeriod} style={styles.navButton}>
           <Ionicons name="chevron-forward" size={24} color="#374151" />
         </TouchableOpacity>
       </View>
@@ -236,7 +337,7 @@ export default function AgendaScreen() {
               <View style={[styles.timeColumn, styles.headerCell]}>
                 <Text style={styles.headerText}>Horário</Text>
               </View>
-              {colaboradores.map((colab) => (
+              {(colaboradores || []).map((colab) => (
                 <View key={colab.id} style={[styles.colaboradorColumn, styles.headerCell]}>
                   <Text style={styles.headerText} numberOfLines={2}>
                     {colab.nome}
@@ -245,8 +346,8 @@ export default function AgendaScreen() {
               ))}
             </View>
 
-            {/* Linhas de dias da semana */}
-            {weekDays.map((day, dayIndex) => (
+            {/* Linhas de dias */}
+            {dates.map((day, dayIndex) => (
               <View key={dayIndex}>
                 {/* Header do dia */}
                 <View style={styles.dayHeader}>
@@ -263,7 +364,7 @@ export default function AgendaScreen() {
                       {formatDate(day)}
                     </Text>
                   </View>
-                  {colaboradores.map((colab) => (
+                  {(colaboradores || []).map((colab) => (
                     <View key={colab.id} style={styles.colaboradorColumn}>
                       <View
                         style={[
@@ -275,46 +376,91 @@ export default function AgendaScreen() {
                   ))}
                 </View>
 
-                {/* Linhas de horário para este dia */}
-                {timeSlots.map((timeSlot) => (
-                  <View key={`${dayIndex}-${timeSlot}`} style={styles.gridRow}>
+                {/* Conteúdo do dia */}
+                {viewMode === 'mes' ? (
+                  // Visualização compacta para mês - mostra apenas lista de agendamentos
+                  <View style={styles.gridRow}>
                     <View style={styles.timeColumn}>
-                      <Text style={styles.timeCell}>{timeSlot}</Text>
+                      <View style={styles.emptyCell} />
                     </View>
-                    {colaboradores.map((colab) => {
-                      const agendamento = findAgendamento(timeSlot, colab.id, dayIndex);
+                    {(colaboradores || []).map((colab) => {
+                      const agendamentosDoDia = findAgendamentosForDay(day, colab.id);
                       return (
-                        <TouchableOpacity
-                          key={colab.id}
-                          style={[
-                            styles.cell,
-                            agendamento && {
-                              backgroundColor: getStatusColor(agendamento.status),
-                            },
-                          ]}
-                          onPress={() => agendamento && handleAgendamentoPress(agendamento)}
-                          disabled={!agendamento}
-                        >
-                          {agendamento && (
-                            <View style={styles.agendamentoCard}>
-                              <Text style={styles.agendamentoCliente} numberOfLines={1}>
-                                {agendamento.cliente?.nome || agendamento.cliente_nome || 'Cliente'}
-                              </Text>
-                              <Text style={styles.agendamentoTime} numberOfLines={1}>
-                                {agendamento.horario_inicio.split(':').slice(0, 2).join(':')}
-                              </Text>
-                              {agendamento.servicos && agendamento.servicos.length > 0 && (
-                                <Text style={styles.agendamentoServico} numberOfLines={1}>
-                                  {agendamento.servicos.map((s) => s.nome).join(', ')}
+                        <View key={colab.id} style={styles.monthCell}>
+                          {agendamentosDoDia.length > 0 ? (
+                            <View style={styles.monthAgendamentosList}>
+                              {agendamentosDoDia.slice(0, 3).map((ag) => (
+                                <TouchableOpacity
+                                  key={ag.id}
+                                  style={[
+                                    styles.monthAgendamentoItem,
+                                    { borderLeftColor: getStatusColor(ag.status) },
+                                  ]}
+                                  onPress={() => handleAgendamentoPress(ag)}
+                                >
+                                  <Text style={styles.monthAgendamentoTime} numberOfLines={1}>
+                                    {ag.horario_inicio.split(':').slice(0, 2).join(':')}
+                                  </Text>
+                                  <Text style={styles.monthAgendamentoCliente} numberOfLines={1}>
+                                    {ag.cliente?.nome || ag.cliente_nome || 'Cliente'}
+                                  </Text>
+                                </TouchableOpacity>
+                              ))}
+                              {agendamentosDoDia.length > 3 && (
+                                <Text style={styles.monthAgendamentoMore}>
+                                  +{agendamentosDoDia.length - 3} mais
                                 </Text>
                               )}
                             </View>
+                          ) : (
+                            <View style={styles.emptyCell} />
                           )}
-                        </TouchableOpacity>
+                        </View>
                       );
                     })}
                   </View>
-                ))}
+                ) : (
+                  // Visualização detalhada para dia e semana
+                  timeSlots.map((timeSlot) => (
+                    <View key={`${dayIndex}-${timeSlot}`} style={styles.gridRow}>
+                      <View style={styles.timeColumn}>
+                        <Text style={styles.timeCell}>{timeSlot}</Text>
+                      </View>
+                      {(colaboradores || []).map((colab) => {
+                        const agendamento = findAgendamento(timeSlot, colab.id, dayIndex);
+                        return (
+                          <TouchableOpacity
+                            key={colab.id}
+                            style={[
+                              styles.cell,
+                              agendamento && {
+                                backgroundColor: getStatusColor(agendamento.status),
+                              },
+                            ]}
+                            onPress={() => agendamento && handleAgendamentoPress(agendamento)}
+                            disabled={!agendamento}
+                          >
+                            {agendamento && (
+                              <View style={styles.agendamentoCard}>
+                                <Text style={styles.agendamentoCliente} numberOfLines={1}>
+                                  {agendamento.cliente?.nome || agendamento.cliente_nome || 'Cliente'}
+                                </Text>
+                                <Text style={styles.agendamentoTime} numberOfLines={1}>
+                                  {agendamento.horario_inicio.split(':').slice(0, 2).join(':')}
+                                </Text>
+                                {agendamento.servicos && agendamento.servicos.length > 0 && (
+                                  <Text style={styles.agendamentoServico} numberOfLines={1}>
+                                    {agendamento.servicos[0].nome}
+                                  </Text>
+                                )}
+                              </View>
+                            )}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  ))
+                )}
               </View>
             ))}
           </View>
@@ -344,9 +490,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerContent: {
-    marginBottom: 12,
+    flex: 1,
   },
   title: {
     fontSize: 24,
@@ -362,18 +511,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
+    gap: 6,
+    paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
     backgroundColor: '#2563EB',
   },
   novoButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  weekNavigation: {
+  viewModeSelector: {
+    flexDirection: 'row',
+    padding: 8,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    gap: 8,
+  },
+  viewModeButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+  },
+  viewModeButtonActive: {
+    backgroundColor: '#DBEAFE',
+  },
+  viewModeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  viewModeTextActive: {
+    color: '#2563EB',
+  },
+  navigation: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -385,13 +561,15 @@ const styles = StyleSheet.create({
   navButton: {
     padding: 8,
   },
-  weekRange: {
+  dateRange: {
     alignItems: 'center',
+    flex: 1,
   },
-  weekRangeText: {
+  dateRangeText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
+    textTransform: 'capitalize',
   },
   todayText: {
     fontSize: 12,
@@ -415,9 +593,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     borderBottomWidth: 2,
     borderBottomColor: '#E5E7EB',
-    position: 'sticky',
-    top: 0,
-    zIndex: 10,
   },
   headerCell: {
     padding: 12,
@@ -452,12 +627,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#6B7280',
     textTransform: 'uppercase',
+    padding: 8,
   },
   dayHeaderDate: {
     fontSize: 14,
     fontWeight: '700',
     color: '#111827',
-    marginTop: 2,
+    paddingHorizontal: 8,
+    paddingBottom: 8,
   },
   dayHeaderDateToday: {
     color: '#2563EB',
@@ -508,5 +685,46 @@ const styles = StyleSheet.create({
   agendamentoServico: {
     fontSize: 10,
     color: '#6B7280',
+  },
+  // Estilos para visualização mensal
+  monthCell: {
+    width: COLUMN_WIDTH,
+    minHeight: 100,
+    borderRightWidth: 1,
+    borderRightColor: '#F3F4F6',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    padding: 4,
+  },
+  monthAgendamentosList: {
+    gap: 4,
+  },
+  monthAgendamentoItem: {
+    padding: 6,
+    borderRadius: 4,
+    backgroundColor: '#FFFFFF',
+    borderLeftWidth: 3,
+    marginBottom: 2,
+  },
+  monthAgendamentoTime: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 2,
+  },
+  monthAgendamentoCliente: {
+    fontSize: 11,
+    color: '#374151',
+  },
+  monthAgendamentoMore: {
+    fontSize: 10,
+    color: '#6B7280',
+    fontStyle: 'italic',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  emptyCell: {
+    flex: 1,
+    minHeight: 100,
   },
 });

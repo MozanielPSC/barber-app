@@ -125,7 +125,28 @@ class ApiClient {
 
   private async loadToken() {
     try {
+      // Tenta carregar do SecureStore primeiro
       this.token = await SecureStore.getItemAsync('auth_token');
+      
+      // Se não encontrar no SecureStore, tenta do AsyncStorage (via authStore)
+      if (!this.token) {
+        try {
+          const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+          const authData = await AsyncStorage.getItem('auth-storage');
+          if (authData) {
+            const parsed = JSON.parse(authData);
+            if (parsed.state?.token) {
+              this.token = parsed.state.token;
+              // Sincroniza com SecureStore também
+              if (this.token) {
+                await SecureStore.setItemAsync('auth_token', this.token);
+              }
+            }
+          }
+        } catch (e) {
+          // Ignora erro se não conseguir carregar do AsyncStorage
+        }
+      }
     } catch (error) {
       console.error('Erro ao carregar token:', error);
     }

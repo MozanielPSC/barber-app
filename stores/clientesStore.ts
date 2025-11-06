@@ -1,29 +1,38 @@
 import { create } from 'zustand';
 import { clientesService } from '../services';
-import { Client } from '../types';
+import { Cliente } from '../types/clientes';
 
 interface ClientesStore {
-  clientes: Client[];
+  clientes: Cliente[];
+  clienteAtual: Cliente | null;
   isLoading: boolean;
-  loadClientes: (params?: any) => Promise<void>;
-  createCliente: (data: any) => Promise<void>;
-  updateCliente: (id: number, data: any) => Promise<void>;
-  deleteCliente: (id: number) => Promise<void>;
+  loadClientes: (params?: { barbearia_id?: string | number; busca?: string }) => Promise<void>;
+  getCliente: (id: string | number) => Cliente | null;
+  createCliente: (data: any) => Promise<Cliente>;
+  createClienteAudio: (audioFile: any, barbearia_id: string) => Promise<Cliente>;
+  updateCliente: (id: string | number, data: any) => Promise<Cliente>;
+  deleteCliente: (id: string | number) => Promise<void>;
 }
 
 export const useClientesStore = create<ClientesStore>((set, get) => ({
   clientes: [],
+  clienteAtual: null,
   isLoading: false,
 
-  loadClientes: async (params?: any) => {
+  loadClientes: async (params?: { barbearia_id?: string | number; busca?: string }) => {
     set({ isLoading: true });
     try {
       const clientes = await clientesService.getClientes(params);
-      set({ clientes, isLoading: false });
+      set({ clientes: Array.isArray(clientes) ? clientes : [], isLoading: false });
     } catch (error) {
-      set({ isLoading: false });
+      set({ clientes: [], isLoading: false });
       throw error;
     }
+  },
+
+  getCliente: (id: string | number) => {
+    const { clientes } = get();
+    return clientes.find((c) => c.id === String(id)) || null;
   },
 
   createCliente: async (data: any) => {
@@ -34,32 +43,49 @@ export const useClientesStore = create<ClientesStore>((set, get) => ({
         clientes: [...state.clientes, cliente],
         isLoading: false,
       }));
+      return cliente;
     } catch (error) {
       set({ isLoading: false });
       throw error;
     }
   },
 
-  updateCliente: async (id: number, data: any) => {
+  createClienteAudio: async (audioFile: any, barbearia_id: string) => {
+    set({ isLoading: true });
+    try {
+      const cliente = await clientesService.createClienteAudio(audioFile, barbearia_id);
+      set((state) => ({
+        clientes: [...state.clientes, cliente],
+        isLoading: false,
+      }));
+      return cliente;
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  updateCliente: async (id: string | number, data: any) => {
     set({ isLoading: true });
     try {
       const cliente = await clientesService.updateCliente(id, data);
       set((state) => ({
-        clientes: state.clientes.map((c) => (c.id === id ? cliente : c)),
+        clientes: state.clientes.map((c) => (c.id === String(id) ? cliente : c)),
         isLoading: false,
       }));
+      return cliente;
     } catch (error) {
       set({ isLoading: false });
       throw error;
     }
   },
 
-  deleteCliente: async (id: number) => {
+  deleteCliente: async (id: string | number) => {
     set({ isLoading: true });
     try {
-      await clientesService.deleteCliente(id);
+      // Nota: A API não tem DELETE, então apenas remove do state local
       set((state) => ({
-        clientes: state.clientes.filter((c) => c.id !== id),
+        clientes: state.clientes.filter((c) => c.id !== String(id)),
         isLoading: false,
       }));
     } catch (error) {

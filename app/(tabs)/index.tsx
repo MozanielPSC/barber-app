@@ -249,7 +249,7 @@ export default function DashboardScreen() {
                   >
                     <Text style={styles.selectText}>
                       {filters.colaborador_id
-                        ? colaboradores.find((c) => c.id === filters.colaborador_id)?.nome ||
+                        ? (colaboradores || []).find((c) => c.id === filters.colaborador_id)?.nome ||
                           'Selecione'
                         : 'Todos'}
                     </Text>
@@ -346,7 +346,7 @@ export default function DashboardScreen() {
                   Todos
                 </Text>
               </TouchableOpacity>
-              {colaboradores.length > 0 ? (
+              {colaboradores && colaboradores.length > 0 ? (
                 colaboradores.map((colab) => (
                   <TouchableOpacity
                     key={colab.id}

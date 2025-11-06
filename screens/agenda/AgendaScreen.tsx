@@ -27,90 +27,58 @@ export const AgendaScreen: React.FC<AgendaScreenProps> = ({ navigation }) => {
       // Mock data para demonstração
       const mockAgendamentos: Agendamento[] = [
         {
-          id: 1,
-          cliente_id: 1,
-          servico_id: 1,
-          colaborador_id: 1,
-          barbearia_id: 1,
+          id: '1',
+          cliente_id: '1',
+          colaborador_id: '1',
+          barbearia_id: '1',
+          data_atendimento: '2024-01-20',
+          horario_inicio: '09:00:00',
           data_hora: '2024-01-20T09:00:00',
-          status: StatusAgendamento.AGENDADO,
+          status: 'agendado',
           observacoes: 'Cliente preferencial',
           cliente: {
-            id: 1,
+            id: '1',
             nome: 'João Silva',
             telefone: '11999999999',
-            email: 'joao@email.com',
-            barbearia_id: 1,
-            created_at: '2024-01-01T00:00:00',
-            updated_at: '2024-01-01T00:00:00',
           },
-          servico: {
-            id: 1,
-            nome: 'Corte + Barba',
-            descricao: 'Corte completo com barba',
-            duracao_minutos: 60,
-            preco: 45.00,
-            ativo: true,
-            barbearia_id: 1,
-            created_at: '2024-01-01T00:00:00',
-            updated_at: '2024-01-01T00:00:00',
-          },
+          servicos: [
+            {
+              id: '1',
+              nome: 'Corte + Barba',
+              preco: 45.00,
+            },
+          ],
           colaborador: {
-            id: 1,
+            id: '1',
             nome: 'Carlos Barbeiro',
-            email: 'carlos@email.com',
-            telefone: '11888888888',
-            ativo: true,
-            barbearia_id: 1,
-            permissoes: [],
-            created_at: '2024-01-01T00:00:00',
-            updated_at: '2024-01-01T00:00:00',
           },
-          created_at: '2024-01-15T00:00:00',
-          updated_at: '2024-01-15T00:00:00',
         },
         {
-          id: 2,
-          cliente_id: 2,
-          servico_id: 2,
-          colaborador_id: 1,
-          barbearia_id: 1,
+          id: '2',
+          cliente_id: '2',
+          colaborador_id: '1',
+          barbearia_id: '1',
+          data_atendimento: '2024-01-20',
+          horario_inicio: '10:30:00',
           data_hora: '2024-01-20T10:30:00',
-          status: StatusAgendamento.CONFIRMADO,
+          status: 'confirmado',
           observacoes: '',
           cliente: {
-            id: 2,
+            id: '2',
             nome: 'Maria Santos',
             telefone: '11777777777',
-            email: 'maria@email.com',
-            barbearia_id: 1,
-            created_at: '2024-01-01T00:00:00',
-            updated_at: '2024-01-01T00:00:00',
           },
-          servico: {
-            id: 2,
-            nome: 'Corte Simples',
-            descricao: 'Corte básico',
-            duracao_minutos: 30,
-            preco: 25.00,
-            ativo: true,
-            barbearia_id: 1,
-            created_at: '2024-01-01T00:00:00',
-            updated_at: '2024-01-01T00:00:00',
-          },
+          servicos: [
+            {
+              id: '2',
+              nome: 'Corte Simples',
+              preco: 25.00,
+            },
+          ],
           colaborador: {
-            id: 1,
+            id: '1',
             nome: 'Carlos Barbeiro',
-            email: 'carlos@email.com',
-            telefone: '11888888888',
-            ativo: true,
-            barbearia_id: 1,
-            permissoes: [],
-            created_at: '2024-01-01T00:00:00',
-            updated_at: '2024-01-01T00:00:00',
           },
-          created_at: '2024-01-16T00:00:00',
-          updated_at: '2024-01-16T00:00:00',
         },
       ];
       
@@ -146,41 +114,55 @@ export const AgendaScreen: React.FC<AgendaScreenProps> = ({ navigation }) => {
     }).format(value);
   };
 
-  const getStatusBadgeVariant = (status: StatusAgendamento) => {
-    switch (status) {
+  const getStatusBadgeVariant = (status: string | StatusAgendamento) => {
+    const statusStr = typeof status === 'string' ? status : status;
+    switch (statusStr) {
+      case 'agendado':
       case StatusAgendamento.AGENDADO:
         return 'info';
+      case 'confirmado':
       case StatusAgendamento.CONFIRMADO:
         return 'success';
-      case StatusAgendamento.EM_ATENDIMENTO:
+      case 'em_andamento':
+      case StatusAgendamento.EM_ANDAMENTO:
         return 'warning';
+      case 'concluido':
       case StatusAgendamento.CONCLUIDO:
         return 'success';
+      case 'cancelado':
       case StatusAgendamento.CANCELADO:
         return 'error';
-      case StatusAgendamento.FALTOU:
+      case 'nao_compareceu':
+      case StatusAgendamento.NAO_COMPARECEU:
         return 'error';
       default:
         return 'default';
     }
   };
 
-  const getStatusText = (status: StatusAgendamento) => {
-    switch (status) {
+  const getStatusText = (status: string | StatusAgendamento) => {
+    const statusStr = typeof status === 'string' ? status : status;
+    switch (statusStr) {
+      case 'agendado':
       case StatusAgendamento.AGENDADO:
         return 'Agendado';
+      case 'confirmado':
       case StatusAgendamento.CONFIRMADO:
         return 'Confirmado';
-      case StatusAgendamento.EM_ATENDIMENTO:
+      case 'em_andamento':
+      case StatusAgendamento.EM_ANDAMENTO:
         return 'Em Atendimento';
+      case 'concluido':
       case StatusAgendamento.CONCLUIDO:
         return 'Concluído';
+      case 'cancelado':
       case StatusAgendamento.CANCELADO:
         return 'Cancelado';
-      case StatusAgendamento.FALTOU:
-        return 'Faltou';
+      case 'nao_compareceu':
+      case StatusAgendamento.NAO_COMPARECEU:
+        return 'Não Compareceu';
       default:
-        return status;
+        return String(status);
     }
   };
 
@@ -254,7 +236,13 @@ export const AgendaScreen: React.FC<AgendaScreenProps> = ({ navigation }) => {
           </Card>
         ) : (
           agendamentos.map((agendamento) => {
-            const { date, time } = formatDateTime(agendamento.data_hora);
+            const dataHora = agendamento.data_hora || `${agendamento.data_atendimento}T${agendamento.horario_inicio}`;
+            const { date, time } = formatDateTime(dataHora);
+            const primeiroServico = agendamento.servicos?.[0];
+            const precoTotal = agendamento.servicos?.reduce((total, servico) => {
+              const preco = typeof servico.preco === 'string' ? parseFloat(servico.preco) : servico.preco;
+              return total + (preco || 0);
+            }, 0) || 0;
             
             return (
               <Card key={agendamento.id} style={styles.agendamentoCard}>
@@ -268,9 +256,12 @@ export const AgendaScreen: React.FC<AgendaScreenProps> = ({ navigation }) => {
                         <Text style={styles.clienteNome}>
                           {agendamento.cliente.nome}
                         </Text>
-                        <Text style={styles.servicoNome}>
-                          {agendamento.servico.nome}
-                        </Text>
+                        {primeiroServico && (
+                          <Text style={styles.servicoNome}>
+                            {primeiroServico.nome}
+                            {agendamento.servicos.length > 1 && ` +${agendamento.servicos.length - 1} mais`}
+                          </Text>
+                        )}
                       </View>
                       <Badge 
                         variant={getStatusBadgeVariant(agendamento.status)}
@@ -295,17 +286,19 @@ export const AgendaScreen: React.FC<AgendaScreenProps> = ({ navigation }) => {
                         </Text>
                       </View>
                       
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Duração:</Text>
-                        <Text style={styles.detailValue}>
-                          {agendamento.servico.duracao_minutos} min
-                        </Text>
-                      </View>
+                      {agendamento.duracao_minutos && (
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>Duração:</Text>
+                          <Text style={styles.detailValue}>
+                            {agendamento.duracao_minutos} min
+                          </Text>
+                        </View>
+                      )}
                       
                       <View style={styles.detailRow}>
                         <Text style={styles.detailLabel}>Valor:</Text>
                         <Text style={styles.detailValue}>
-                          {formatMoney(agendamento.servico.preco)}
+                          {formatMoney(precoTotal)}
                         </Text>
                       </View>
 

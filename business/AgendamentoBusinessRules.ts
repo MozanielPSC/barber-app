@@ -17,7 +17,7 @@ export class AgendamentoBusinessRules {
     const agendamentosColaborador = agendamentosExistentes.filter(
       (ag) => ag.colaborador_id === colaboradorId &&
       ag.status !== StatusAgendamento.CANCELADO &&
-      ag.status !== StatusAgendamento.FALTOU
+      ag.status !== StatusAgendamento.NAO_COMPARECEU
     );
 
     // Verificar conflitos de horário
@@ -122,14 +122,14 @@ export class AgendamentoBusinessRules {
    * Valida se um agendamento pode ser concluído
    */
   static podeConcluirAgendamento(agendamento: Agendamento): boolean {
-    return agendamento.status === StatusAgendamento.EM_ATENDIMENTO;
+    return agendamento.status === StatusAgendamento.EM_ANDAMENTO;
   }
 
   /**
    * Calcula o tempo de atraso de um agendamento
    */
   static calcularAtraso(agendamento: Agendamento): number {
-    if (agendamento.status !== StatusAgendamento.EM_ATENDIMENTO) {
+    if (agendamento.status !== StatusAgendamento.EM_ANDAMENTO) {
       return 0;
     }
 

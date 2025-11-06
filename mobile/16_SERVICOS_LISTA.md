@@ -2,41 +2,42 @@
 
 ## Visão Geral
 
-Lista de serviços cadastrados em formato de tabela editável inline. Permite edição direta nos campos e adição de novos serviços.
+Lista de serviços cadastrados em formato de grid de cards. Permite busca por nome e navegação para detalhes/cadastro.
 
 ## Layout Visual
 
 ### Header
-- **Título**: "Catálogo — Serviços"
-- **Botão**: "+ Adicionar serviço" (só se tiver permissão)
+- **Busca**: Input com ícone de lupa à esquerda, placeholder "Buscar serviços..."
+- **Botão**: "Novo Serviço" (azul, com ícone Plus)
 
-### Tabela (Desktop)
-- **Colunas**:
-  1. Nome (input editável)
-  2. Preço (R$) (input number)
-  3. % Comissão (input number, 0-1)
-  4. % Assistente (input number, 0-1)
-  5. % Indicador (input number, 0-1)
-  6. Meta q/dia (input number)
-  7. Ações (botão salvar/excluir)
+### Grid de Cards (Responsivo)
+- **Layout**: Grid responsivo (1 coluna mobile, 2 tablet, 3 desktop)
+- **Gap**: 16px entre cards
 
-- **Estilo**: 
-  - Background: `bg-gray-900/50` com `backdrop-blur-sm`
-  - Tabela: Borda `border-gray-800`
-  - Header: `bg-gray-800`, sticky
-  - Rows: Hover `bg-gray-800/30`
-  - Inputs: `bg-gray-800`, `border-gray-700`, texto branco
+### Card de Serviço
+- **Header**:
+  - Ícone: Círculo com gradiente azul-cyan, WrenchScrewdriverIcon
+  - Nome do serviço (truncate)
+  - Preço padrão (grande, azul, bold)
+- **Informações**:
+  - Comissão Principal (percentual)
+  - Comissão Assistente (se houver, verde)
+  - Comissão Indicador (se houver, roxo)
+  - Meta diária (quantidade de unidades)
+- **Hover**: Shadow aumentada, borda muda de cor
+- **Click**: Navega para `/servicos/{id}`
 
-### Cards (Mobile)
-- Cards individuais com mesmos campos
-- Botões de ação em cada card
+### Estado Vazio
+- **Ícone**: WrenchScrewdriverIcon grande, cinza
+- **Título**: "Nenhum serviço encontrado"
+- **Mensagem**: "Comece adicionando seu primeiro serviço"
+- **Botão**: "Adicionar Primeiro Serviço"
 
 ## Funcionalidades
 
-- **Edição Inline**: Campos editáveis diretamente na tabela
-- **Auto-save**: Salva automaticamente ao sair do campo (ou botão salvar)
-- **Adicionar**: Botão adiciona nova linha vazia
-- **Excluir**: Botão de exclusão em cada linha
+- **Busca**: Filtra serviços por nome em tempo real
+- **Navegação**: Cards clicáveis redirecionam para detalhes
+- **Visualização**: Mostra todas as informações principais do serviço
 
 ## Rotas API
 
@@ -51,14 +52,20 @@ Lista de serviços cadastrados em formato de tabela editável inline. Permite ed
   {
     "id": "string",
     "nome": "string",
-    "preco_padrao": 0,
-    "percentual_comissao": 0,
-    "percentual_comissao_assistente": 0,
-    "percentual_comissao_indicador": 0,
-    "meta_diaria": 0
+    "preco_padrao": "0.00",
+    "percentual_comissao_executor": 0.5,
+    "percentual_comissao_assistente": 0.1,
+    "percentual_comissao_indicacao": 0.05,
+    "meta_diaria_qtd": 10
   }
 ]
 ```
+
+**Nota**: 
+- `percentual_comissao_executor`: Percentual do executor (0-1, ex: 0.5 = 50%)
+- `percentual_comissao_assistente`: Percentual do assistente (opcional, 0-1)
+- `percentual_comissao_indicacao`: Percentual do indicador (opcional, 0-1)
+- `meta_diaria_qtd`: Quantidade de unidades na meta diária
 
 ### POST /servicos
 
@@ -66,65 +73,44 @@ Lista de serviços cadastrados em formato de tabela editável inline. Permite ed
 ```json
 {
   "nome": "string",
-  "preco_padrao": 0,
-  "percentual_comissao": 0,
-  "percentual_comissao_assistente": 0,
-  "percentual_comissao_indicador": 0,
-  "meta_diaria": 0,
+  "preco_padrao": 0.00,
+  "percentual_comissao_executor": 0.5,
+  "percentual_comissao_assistente": 0.1,
+  "percentual_comissao_indicacao": 0.05,
+  "meta_diaria_qtd": 10,
   "barbearia_id": "string"
 }
 ```
 
+**Nota**: 
+- `percentual_comissao_assistente` e `percentual_comissao_indicacao` são opcionais
+- `meta_diaria_qtd` é opcional (pode ser 0)
+
 ### PUT /servicos/{id}
 
-**Request Body**: Mesmo formato do POST
+**Path Params:**
+- `id`: UUID do serviço
+
+**Request Body**: Mesmo formato do POST (todos os campos opcionais, apenas os que serão atualizados)
+
+**Response:** Retorna o serviço atualizado
 
 ### DELETE /servicos/{id}
+
+**Path Params:**
+- `id`: UUID do serviço
 
 **Query Params:**
 - `barbearia_id` (obrigatório)
 
+**Response:** 204 No Content
+
 ## Stores
 
 - `useServicosStore`:
-  - `loadServicos()`: Carrega lista
-  - `addServico(data)`: Adiciona
-  - `updateServico(id, data)`: Atualiza
-  - `deleteServico(id)`: Exclui
+  - `loadServices()`: Carrega lista via `GET /servicos?barbearia_id={id}`
+  - `addService(data)`: Adiciona via `POST /servicos`
+  - `updateService(id, updates)`: Atualiza via `PUT /servicos/{id}`
+  - `deleteService(id)`: Exclui via `DELETE /servicos/{id}?barbearia_id={id}`
 
-## Implementação React Native
-
-Use `FlatList` com `renderItem` customizado ou `SectionList` para tabela. Para edição inline, use `TextInput` dentro dos itens da lista.
-
-```tsx
-const ServicesScreen = () => {
-  const [services, setServices] = useState([]);
-  const [editingId, setEditingId] = useState(null);
-
-  return (
-    <View>
-      <View style={styles.header}>
-        <Text style={styles.title}>Catálogo — Serviços</Text>
-        <TouchableOpacity onPress={handleAdd}>
-          <Text>+ Adicionar serviço</Text>
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        data={services}
-        renderItem={({ item }) => (
-          <ServiceRow 
-            service={item} 
-            isEditing={editingId === item.id}
-            onEdit={setEditingId}
-            onSave={handleSave}
-            onDelete={handleDelete}
-          />
-        )}
-        keyExtractor={(item) => item.id}
-      />
-    </View>
-  );
-};
-```
 

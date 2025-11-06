@@ -54,9 +54,9 @@ Lista de clientes cadastrados em formato de cards em grid. Permite busca por nom
     "origem": "string",
     "quem_indicou": "string | null",
     "observacoes": "string | null",
-    "criado_em": "string",
-    "ultima_visita": "string | null",
-    "ultima_compra_produto": "string | null"
+    "criado_em": "string (ISO 8601)",
+    "ultima_visita": "string | null (ISO 8601)",
+    "ultima_compra_produto": "string | null (ISO 8601)"
   }
 ]
 ```
@@ -68,30 +68,4 @@ Lista de clientes cadastrados em formato de cards em grid. Permite busca por nom
   - `filteredClients(query)`: Getter para busca local
 - `usePermissions`: Verifica `canViewClientes`, `canCreateClientes`
 
-## Implementação React Native
-
-```tsx
-// Use FlatList com numColumns para grid
-<FlatList
-  data={filteredClients}
-  numColumns={isTablet ? 2 : 1}
-  renderItem={({ item }) => <ClientCard client={item} />}
-  keyExtractor={(item) => item.id}
-  ListEmptyComponent={<EmptyState />}
-/>
-
-// Card component
-const ClientCard = ({ client, onPress }) => (
-  <TouchableOpacity onPress={onPress} style={styles.card}>
-    <View style={styles.avatar}>
-      <Text style={styles.avatarText}>
-        {getInitials(client.name)}
-      </Text>
-    </View>
-    <Text style={styles.name}>{client.name}</Text>
-    <Text style={styles.phone}>{client.phone}</Text>
-    {/* ... mais campos */}
-  </TouchableOpacity>
-);
-```
 

@@ -105,6 +105,7 @@ export const useAuthStore = create<AuthStore>()(
         } catch (error) {
           console.error('Erro ao fazer logout:', error);
         } finally {
+          await apiClient.clearToken();
           set({
             user: null,
             token: null,
@@ -155,6 +156,14 @@ export const useAuthStore = create<AuthStore>()(
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Quando o estado for restaurado, sincroniza o token com o apiClient
+        if (state?.token) {
+          apiClient.setToken(state.token).catch((error) => {
+            console.error('Erro ao sincronizar token com apiClient:', error);
+          });
+        }
+      },
     }
   )
 );

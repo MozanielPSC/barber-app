@@ -2,6 +2,7 @@
 export * from './agendamentos';
 export * from './auth';
 export * from './barbearia';
+export * from './clientes';
 export * from './comissoes';
 export * from './dashboard';
 export * from './enums';

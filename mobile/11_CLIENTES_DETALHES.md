@@ -48,7 +48,32 @@ Formulário similar ao de cadastro, com campos pré-preenchidos:
 
 ## Rotas API
 
-### GET /clientes/{id}
+### GET /clientes
+
+**Nota**: Não há rota específica para buscar um cliente individual. O cliente é carregado da store que busca todos os clientes via `GET /clientes?barbearia_id={id}` e filtra localmente pelo ID.
+
+**Query Params:**
+- `barbearia_id` (obrigatório)
+- `busca` (opcional)
+
+**Response:** Array de clientes (mesmo formato da lista)
+
+### PUT /clientes/{id}
+
+**Path Params:**
+- `id`: UUID do cliente
+
+**Request Body:**
+```json
+{
+  "nome": "string",
+  "telefone": "string",
+  "origem": "string",
+  "quem_indicou": "string | null",
+  "observacoes": "string | null",
+  "barbearia_id": "string"
+}
+```
 
 **Response:**
 ```json
@@ -66,31 +91,14 @@ Formulário similar ao de cadastro, com campos pré-preenchidos:
 }
 ```
 
-### PUT /clientes/{id}
-
-**Request Body:**
-```json
-{
-  "nome": "string",
-  "telefone": "string",
-  "origem": "string",
-  "quem_indicou": "string | null",
-  "observacoes": "string | null",
-  "barbearia_id": "string"
-}
-```
-
-### DELETE /clientes/{id}
-
-**Query Params:**
-- `barbearia_id` (obrigatório)
+**Nota**: Não há rota DELETE na API. A função `deleteClient` na store apenas remove o cliente localmente do state, mas não faz chamada à API.
 
 ## Stores
 
 - `useClientesStore`: 
-  - `loadClients()`: Carrega lista (busca cliente na store)
-  - `updateClient(id, data)`: Atualiza cliente
-  - `deleteClient(id)`: Exclui cliente
+  - `loadClients(searchQuery?)`: Carrega lista de clientes (busca cliente na store localmente pelo ID)
+  - `updateClient(id, data)`: Atualiza cliente via `PUT /clientes/{id}`
+  - `deleteClient(id)`: Remove cliente apenas do state local (não faz chamada à API)
 - `useAppStore`: Notificações
 
 
