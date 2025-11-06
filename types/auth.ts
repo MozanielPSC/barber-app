@@ -8,6 +8,11 @@ export interface User {
   foto_perfil?: string;
   created_at: string;
   updated_at: string;
+  // Campos para colaboradores
+  barbearia_id?: number;
+  nome_barbearia?: string;
+  // Campos para proprietários
+  nome_proprietario?: string;
 }
 
 export interface Permissao {

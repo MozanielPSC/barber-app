@@ -33,6 +33,13 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
           });
+          
+          // Se for proprietário, carrega barbearias
+          if (response.user.tipo === 'proprietario') {
+            const { useBarbeariasStore } = await import('./barbeariasStore');
+            const { loadBarbearias } = useBarbeariasStore.getState();
+            await loadBarbearias();
+          }
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -50,6 +57,25 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
           });
+          
+          // Para colaboradores, define a barbearia automaticamente
+          if (response.user.tipo === 'colaborador' && response.user.barbearia_id) {
+            const { useBarbeariasStore } = await import('./barbeariasStore');
+            const { setBarbeariaAtual } = useBarbeariasStore.getState();
+            // Cria objeto barbearia mínimo para o colaborador
+            await setBarbeariaAtual({
+              id: response.user.barbearia_id,
+              nome: response.user.nome_barbearia || 'Barbearia',
+              endereco: '',
+              telefone: '',
+              horario_funcionamento: '',
+              dias_funcionamento: [],
+              ativa: true,
+              proprietario_id: 0,
+              created_at: '',
+              updated_at: '',
+            });
+          }
         } catch (error) {
           set({ isLoading: false });
           throw error;

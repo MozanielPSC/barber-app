@@ -18,9 +18,10 @@ export const useColaboradoresStore = create<ColaboradoresStore>((set, get) => ({
     set({ isLoading: true });
     try {
       const colaboradores = await colaboradoresService.getColaboradores(params);
-      set({ colaboradores, isLoading: false });
+      set({ colaboradores: Array.isArray(colaboradores) ? colaboradores : [], isLoading: false });
+      return colaboradores;
     } catch (error) {
-      set({ isLoading: false });
+      set({ isLoading: false, colaboradores: [] });
       throw error;
     }
   },

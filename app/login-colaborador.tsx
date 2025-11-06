@@ -107,6 +107,7 @@ export default function LoginColaboradorScreen() {
 
     try {
       await loginColaborador(email, senha, codigoBarbearia.toUpperCase());
+      // Colaboradores não precisam selecionar, já têm barbearia definida
       router.replace('/(tabs)');
     } catch (error: any) {
       setError(error.message || 'Credenciais inválidas');

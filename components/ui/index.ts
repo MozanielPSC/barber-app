@@ -4,4 +4,5 @@ export { Button } from './Button';
 export { Card, CardContent, CardFooter, CardHeader } from './Card';
 export { FlashMessage } from './FlashMessage';
 export { Input } from './Input';
+export { ProgressBar } from './ProgressBar';
 

@@ -98,7 +98,15 @@ export default function LoginScreen() {
 
     try {
       await login(email, senha);
-      router.replace('/(tabs)');
+      // Verifica se precisa selecionar barbearia
+      const { useBarbeariasStore } = await import('../stores/barbeariasStore');
+      const { barbeariaAtual } = useBarbeariasStore.getState();
+      
+      if (!barbeariaAtual) {
+        router.replace('/select-barbearia');
+      } else {
+        router.replace('/(tabs)');
+      }
     } catch (error: any) {
       setError(error.message || 'Credenciais inválidas');
     }
