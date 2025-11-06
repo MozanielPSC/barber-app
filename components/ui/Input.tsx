@@ -65,8 +65,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
+    fontWeight: '600',
+    color: '#111827',
     marginBottom: 8,
   },
   inputContainer: {
@@ -94,11 +94,12 @@ const styles = StyleSheet.create({
   },
   
   outlined: {
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
   },
   
   filled: {
@@ -128,6 +129,7 @@ const styles = StyleSheet.create({
   // States
   error: {
     borderColor: '#EF4444',
+    borderWidth: 2,
   },
   errorText: {
     fontSize: 12,

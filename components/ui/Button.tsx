@@ -1,15 +1,17 @@
 import React from 'react';
-import { StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger';
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'gradient';
   size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  gradientColors?: string[];
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -21,10 +23,11 @@ export const Button: React.FC<ButtonProps> = ({
   loading = false,
   style,
   textStyle,
+  gradientColors,
 }) => {
   const buttonStyle = [
     styles.button,
-    styles[variant],
+    variant !== 'gradient' && styles[variant],
     styles[size],
     disabled && styles.disabled,
     style,
@@ -38,6 +41,36 @@ export const Button: React.FC<ButtonProps> = ({
     textStyle,
   ];
 
+  const isGradient = variant === 'gradient' || (variant === 'primary' && !disabled);
+
+  const gradientColorsFinal = disabled
+    ? ['#9CA3AF', '#6B7280']
+    : gradientColors || ['#9333EA', '#2563EB'];
+
+  if (isGradient && !disabled) {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={disabled || loading}
+        activeOpacity={0.8}
+        style={[styles.buttonContainer, style]}
+      >
+        <LinearGradient
+          colors={gradientColorsFinal}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[styles.button, styles[size], disabled && styles.buttonDisabled]}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={[textStyleCombined, { color: '#FFFFFF' }]}>{title}</Text>
+          )}
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <TouchableOpacity
       style={buttonStyle}
@@ -45,16 +78,24 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={disabled || loading}
       activeOpacity={0.7}
     >
-      <Text style={textStyleCombined}>
-        {loading ? 'Carregando...' : title}
-      </Text>
+      {loading ? (
+        <ActivityIndicator color={variant === 'outline' ? '#3B82F6' : '#FFFFFF'} />
+      ) : (
+        <Text style={textStyleCombined}>
+          {title}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
+  buttonContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
   button: {
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
@@ -66,7 +107,7 @@ const styles = StyleSheet.create({
   
   // Variants
   primary: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#6366F1',
   },
   primaryText: {
     color: '#FFFFFF',
@@ -81,17 +122,21 @@ const styles = StyleSheet.create({
   
   outline: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#3B82F6',
+    borderWidth: 2,
+    borderColor: '#6366F1',
   },
   outlineText: {
-    color: '#3B82F6',
+    color: '#6366F1',
   },
   
   danger: {
     backgroundColor: '#EF4444',
   },
   dangerText: {
+    color: '#FFFFFF',
+  },
+  
+  gradientText: {
     color: '#FFFFFF',
   },
   
@@ -106,8 +151,8 @@ const styles = StyleSheet.create({
   },
   
   medium: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
     minHeight: 44,
   },
   mediumText: {
@@ -115,7 +160,7 @@ const styles = StyleSheet.create({
   },
   
   large: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 32,
     paddingVertical: 16,
     minHeight: 52,
   },
@@ -126,6 +171,9 @@ const styles = StyleSheet.create({
   // States
   disabled: {
     opacity: 0.5,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   disabledText: {
     opacity: 0.7,
