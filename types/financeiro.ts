@@ -1,65 +1,88 @@
-export interface FinanceItem {
-  id: number;
+export interface MetricaFinanceira {
+  valor: number;
+  variacao_percentual?: number | null;
+  margem_percentual?: number;
+  percentual?: number;
+}
+
+export interface MetricasDashboard {
+  faturamento_bruto: MetricaFinanceira;
+  lucro_bruto: MetricaFinanceira;
+  margem_contribuicao: MetricaFinanceira;
+  ebitda: MetricaFinanceira;
+  custos_deducoes: MetricaFinanceira;
+  despesas_variaveis: MetricaFinanceira;
+  despesas_fixas: MetricaFinanceira;
+  despesas_nao_operacionais: MetricaFinanceira;
+}
+
+export interface HistoricoFaturamento {
+  mes: string; // YYYY-MM
+  mes_formatado: string; // "Jan 2024"
+  valor: number;
+  valor_sem_outras_receitas?: number;
+}
+
+export interface CategoriaFinanceira {
   nome: string;
-  tipo: 'receita' | 'despesa';
+  valor: number;
+  percentual: number;
+  percentual_acumulado: number;
+}
+
+export interface FaturamentoCategoria {
+  categorias: CategoriaFinanceira[];
+  total: number;
+}
+
+export interface DespesasCategoria {
+  categorias: CategoriaFinanceira[];
+  total: number;
+}
+
+export interface DespesaFixa {
   categoria: string;
   valor: number;
-  data: string;
-  observacoes?: string;
-  barbearia_id: number;
-  created_at: string;
-  updated_at: string;
 }
 
-export interface Chair {
-  id: number;
+export interface DespesaVariavel {
+  categoria: string;
+  valor: number;
+}
+
+export interface CanalMarketing {
   nome: string;
-  barbearia_id: number;
-  ativa: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Channel {
-  id: number;
-  nome: string;
-  barbearia_id: number;
-  ativo: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface FinanceDefaults {
-  barbearia_id: number;
-  meta_diaria: number;
-  meta_semanal: number;
-  meta_mensal: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Finance {
-  id: number;
-  barbearia_id: number;
-  data: string;
-  receitas: number;
-  despesas: number;
-  lucro: number;
-  meta_diaria: number;
-  atingiu_meta: boolean;
-  created_at: string;
-  updated_at: string;
+  gasto: number;
 }
 
 export interface GastoColaborador {
-  id: number;
-  colaborador_id: number;
-  valor: number;
+  id: string;
+  colaborador_id: string;
+  colaborador?: {
+    id: string;
+    nome: string;
+  };
   descricao: string;
-  data: string;
-  tipo: 'fixo' | 'variavel' | 'parcelado';
-  parcelas?: number;
-  parcela_atual?: number;
-  created_at: string;
-  updated_at: string;
+  valor_total: string | number;
+  data_vencimento: string; // YYYY-MM-DD
+  status: 'pendente' | 'pago' | 'atrasado';
+  data_pagamento?: string | null;
+  observacoes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface GastoColaboradorInput {
+  colaborador_id: string;
+  descricao: string;
+  valor_total: number;
+  data_vencimento: string;
+  observacoes?: string | null;
+}
+
+export interface TotaisGastos {
+  pendente: number;
+  pago: number;
+  atrasado: number;
+  geral: number;
 }

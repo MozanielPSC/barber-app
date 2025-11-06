@@ -2,54 +2,43 @@
 
 ## Visão Geral
 
-Visão geral do estoque com alertas, lista de produtos e ações rápidas para movimentações.
+Tela principal de controle de estoque com resumo, tabs de navegação (Estoque Atual, Prateleiras, Alertas) e ações rápidas para movimentações.
 
 ## Layout Visual
 
 ### Header
-- **Título**: "Estoque"
-- **Subtítulo**: "Gerenciamento de produtos e movimentações"
-- **Botão**: "Nova Movimentação" (abre modal/tela de movimentações)
+- **Título**: "Controle de Estoque"
+- **Subtítulo**: "Gerencie produtos, prateleiras e movimentações"
+- **Botões**:
+  - "Movimentações" (roxo, com ícone ChartBarIcon) - navega para `/estoque/movimentacoes`
+  - "Relatório" (azul, com ícone DocumentChartBarIcon) - navega para `/estoque/relatorio`
 
-### Cards de Alertas (Topo)
-- **Card: Produtos em Falta**
-  - Background: Vermelho claro
-  - Ícone: ExclamationTriangleIcon
-  - Contador: Número de produtos
-  - Botão: "Ver Lista"
-  
-- **Card: Estoque Baixo**
-  - Background: Amarelo claro
-  - Ícone: ExclamationCircleIcon
-  - Contador: Número de produtos
-  - Botão: "Ver Lista"
+### Cards de Resumo (Topo)
+Grid de 4 colunas:
+- **Total Produtos**: Ícone CubeIcon (azul), mostra quantidade total de produtos em estoque
+- **Valor Total**: Ícone CurrencyDollarIcon (verde), mostra valor total do estoque
+- **Estoque Baixo**: Ícone ExclamationTriangleIcon (amarelo), mostra quantidade de produtos com estoque baixo
+- **Prateleiras**: Ícone BuildingStorefrontIcon (roxo), mostra quantidade de prateleiras ativas
 
-### Filtros
-- **Busca**: Input de texto (busca por nome do produto)
-- **Categoria**: Select (opcional)
-- **Status**: Tabs ou select
-  - Todos
-  - Em Estoque
-  - Estoque Baixo
-  - Em Falta
+### Tabs de Navegação
+- **Estoque Atual**: Lista de produtos com estoque (componente `EstoqueAtual`)
+- **Prateleiras**: Lista de prateleiras (componente `PrateleirasList`)
+- **Alertas**: Lista de produtos com estoque baixo (componente `AlertasEstoque`)
 
-### Lista de Produtos
-- **Formato**: Cards ou lista
-- **Cada Item**:
-  - Nome do produto
-  - Estoque atual (destaque)
-  - Estoque mínimo (se configurado)
-  - Prateleira (se aplicável)
-  - Status badge (Em Estoque/Estoque Baixo/Em Falta)
-  - **Ações**: 
-    - Botão "Ajustar" (abre ajuste rápido)
-    - Botão "Ver Detalhes"
+### Tab: Estoque Atual
+- Lista de produtos com estoque
+- Mostra quantidade atual, prateleira, status
+- Ações: Adicionar estoque, Editar estoque, Transferir estoque
 
-### Botões de Ação Rápida (FAB ou footer)
-- **Entrada**: Ícone Plus
-- **Saída**: Ícone Minus
-- **Ajuste**: Ícone Pencil
-- **Transferência**: Ícone ArrowRightLeft
+### Tab: Prateleiras
+- Lista de prateleiras cadastradas
+- Mostra nome, localização, status (ativa/inativa), quantidade de produtos
+- Ações: Ver prateleira, Editar prateleira, Nova prateleira
+
+### Tab: Alertas
+- Lista de produtos com estoque baixo
+- Mostra nome do produto, estoque atual, estoque mínimo
+- Ação: Repor estoque (navega para entrada)
 
 ## Rotas da API
 
@@ -57,9 +46,38 @@ Visão geral do estoque com alertas, lista de produtos e ações rápidas para m
 
 **Query Params:**
 - `barbearia_id` (obrigatório)
-- `busca` (opcional)
-- `categoria` (opcional)
-- `status` (opcional: "em_estoque" | "estoque_baixo" | "em_falta")
+
+**Response:**
+```json
+{
+  "estoque": [
+    {
+      "id": "string",
+      "produto_id": "string",
+      "prateleira_id": "string",
+      "quantidade_atual": 0,
+      "quantidade_reservada": 0,
+      "produto": {
+        "id": "string",
+        "nome": "string",
+        "preco_padrao": "0.00"
+      },
+      "prateleira": {
+        "id": "string",
+        "nome": "string",
+        "localizacao": "string"
+      }
+    }
+  ]
+}
+```
+
+**Nota**: A API pode retornar `{ message: "...", estoque: [...] }` ou array direto.
+
+### GET /estoque/baixo
+
+**Query Params:**
+- `barbearia_id` (obrigatório)
 
 **Response:**
 ```json
@@ -70,47 +88,48 @@ Visão geral do estoque com alertas, lista de produtos e ações rápidas para m
       "nome": "string",
       "estoque_atual": 0,
       "estoque_minimo": 0,
-      "prateleira_nome": "string | null",
-      "status": "em_estoque" | "estoque_baixo" | "em_falta"
+      "alerta": "baixo" | "critico"
     }
   ]
 }
 ```
 
-### GET /estoque/alertas
+**Nota**: A API pode retornar `{ message: "...", produtos: [...] }` ou array direto.
+
+### GET /prateleiras
 
 **Query Params:**
 - `barbearia_id` (obrigatório)
+- `ativa` (opcional: true/false)
+- `nome` (opcional: busca por nome)
 
 **Response:**
 ```json
 {
-  "em_falta": [
+  "prateleiras": [
     {
       "id": "string",
       "nome": "string",
-      "estoque_atual": 0,
-      "estoque_minimo": 0
+      "localizacao": "string",
+      "capacidade_maxima": 0,
+      "ativa": true
     }
-  ],
-  "estoque_baixo": [
-    {
-      "id": "string",
-      "nome": "string",
-      "estoque_atual": 0,
-      "estoque_minimo": 0
-    }
-  ],
-  "total_em_falta": 0,
-  "total_estoque_baixo": 0
+  ]
 }
 ```
+
+**Nota**: A API pode retornar `{ message: "...", prateleiras: [...] }` ou array direto.
 
 ## Stores
 
 - `useEstoqueStore`:
-  - `loadEstoque(filters)`: Carrega lista
-  - `loadAlertas()`: Carrega alertas
+  - `carregarEstoqueAtual()`: Carrega lista via `GET /estoque?barbearia_id={id}`
+  - `carregarProdutosEstoqueBaixo()`: Carrega alertas via `GET /estoque/baixo?barbearia_id={id}`
+  - `listarPrateleiras(filtros?)`: Carrega prateleiras via `GET /prateleiras?barbearia_id={id}&...`
+  - `totalProdutosEstoque`: Getter que calcula total de produtos
+  - `valorTotalEstoque`: Getter que calcula valor total do estoque
+  - `prateleirasAtivas`: Getter que filtra prateleiras ativas
+  - `estoquePorPrateleira(prateleiraId)`: Getter que filtra estoque por prateleira
 - `useProdutosStore`: Lista de produtos
 
 

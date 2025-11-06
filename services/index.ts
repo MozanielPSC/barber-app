@@ -8,4 +8,5 @@ export { colaboradoresService } from './colaboradoresService';
 export { dashboardService } from './dashboardService';
 export { produtosService } from './produtosService';
 export { servicosService } from './servicosService';
+export { poteService } from './poteService';
 

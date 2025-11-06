@@ -1,31 +1,34 @@
 export interface Service {
-  id: string;
-  usuario_id?: string;
+  id: string; // UUID
   barbearia_id: string;
   nome: string;
-  descricao?: string;
-  duracao_minutos: number;
-  preco_padrao: string; // API retorna como string
-  percentual_comissao_executor?: string;
-  percentual_comissao_assistente?: string;
-  percentual_comissao_indicacao?: string;
+  preco_padrao: string; // "0.00" formato string
+  percentual_comissao_executor?: number; // 0-1 (ex: 0.5 = 50%)
+  percentual_comissao_assistente?: number; // 0-1 (opcional)
+  percentual_comissao_indicacao?: number; // 0-1 (opcional)
   meta_diaria_qtd?: number;
+  // Campos opcionais para compatibilidade
+  descricao?: string;
+  duracao_minutos?: number;
   ativo?: boolean;
+  usuario_id?: string;
   created_at?: string;
   updated_at?: string;
-  // Campo opcional para compatibilidade
-  preco?: number | string;
 }
 
 export interface Product {
-  id: number;
+  id: string; // UUID
+  barbearia_id: string;
   nome: string;
+  preco_padrao: string; // "0.00" formato string
+  percentual_comissao?: number; // 0-1 (ex: 0.5 = 50%)
+  percentual_imposto?: number; // 0-1 (opcional)
+  percentual_cartao?: number; // 0-1 (opcional)
+  meta_diaria_qtd?: number;
+  // Campos opcionais para compatibilidade
   descricao?: string;
-  preco: number;
-  estoque_minimo: number;
-  estoque_atual: number;
-  ativo: boolean;
-  barbearia_id: number;
-  created_at: string;
-  updated_at: string;
+  ativo?: boolean;
+  usuario_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }

@@ -1,23 +1,23 @@
 import apiClient from './apiClient';
 
 export const servicosService = {
-  getServicos: (params?: any) => {
-    return apiClient.get('/servicos', { params });
-  },
-
-  getServico: (id: number) => {
-    return apiClient.get(`/servicos/${id}`);
+  getServicos: (barbeariaId: string) => {
+    return apiClient.get('/servicos', { 
+      params: { barbearia_id: barbeariaId } 
+    });
   },
 
   createServico: (data: any) => {
     return apiClient.post('/servicos', data);
   },
 
-  updateServico: (id: number, data: any) => {
+  updateServico: (id: string, data: any) => {
     return apiClient.put(`/servicos/${id}`, data);
   },
 
-  deleteServico: (id: number) => {
-    return apiClient.delete(`/servicos/${id}`);
+  deleteServico: (id: string, barbeariaId: string) => {
+    return apiClient.delete(`/servicos/${id}`, {
+      params: { barbearia_id: barbeariaId }
+    });
   },
 };

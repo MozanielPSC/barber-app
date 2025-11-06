@@ -1,27 +1,44 @@
 import { create } from 'zustand';
 import { colaboradoresService } from '../services';
-import { ColaboradoresState } from '../types';
+import { Colaborador } from '../types';
+
+interface ColaboradoresState {
+  colaboradores: Colaborador[];
+  isLoading: boolean;
+}
 
 interface ColaboradoresStore extends ColaboradoresState {
-  loadColaboradores: (params?: any) => Promise<void>;
+  loadColaboradores: (barbeariaId: string, busca?: string) => Promise<void>;
+  getColaborador: (id: string, barbeariaId: string) => Promise<Colaborador>;
   createColaborador: (data: any) => Promise<void>;
-  updateColaborador: (id: number, data: any) => Promise<void>;
-  deleteColaborador: (id: number) => Promise<void>;
-  updatePermissoes: (id: number, permissoes: number[]) => Promise<void>;
+  updateColaborador: (id: string, data: any) => Promise<void>;
+  deleteColaborador: (id: string, barbeariaId: string) => Promise<void>;
+  updatePermissoes: (id: string, permissoes: any, barbeariaId: string) => Promise<void>;
 }
 
 export const useColaboradoresStore = create<ColaboradoresStore>((set, get) => ({
   colaboradores: [],
   isLoading: false,
 
-  loadColaboradores: async (params?: any) => {
+  loadColaboradores: async (barbeariaId: string, busca?: string) => {
     set({ isLoading: true });
     try {
-      const colaboradores = await colaboradoresService.getColaboradores(params);
+      const colaboradores = await colaboradoresService.getColaboradores(barbeariaId, busca);
       set({ colaboradores: Array.isArray(colaboradores) ? colaboradores : [], isLoading: false });
-      return colaboradores;
     } catch (error) {
       set({ isLoading: false, colaboradores: [] });
+      throw error;
+    }
+  },
+
+  getColaborador: async (id: string, barbeariaId: string) => {
+    set({ isLoading: true });
+    try {
+      const colaborador = await colaboradoresService.getColaborador(id, barbeariaId);
+      set({ isLoading: false });
+      return colaborador;
+    } catch (error) {
+      set({ isLoading: false });
       throw error;
     }
   },
@@ -40,7 +57,7 @@ export const useColaboradoresStore = create<ColaboradoresStore>((set, get) => ({
     }
   },
 
-  updateColaborador: async (id: number, data: any) => {
+  updateColaborador: async (id: string, data: any) => {
     set({ isLoading: true });
     try {
       const colaborador = await colaboradoresService.updateColaborador(id, data);
@@ -54,10 +71,10 @@ export const useColaboradoresStore = create<ColaboradoresStore>((set, get) => ({
     }
   },
 
-  deleteColaborador: async (id: number) => {
+  deleteColaborador: async (id: string, barbeariaId: string) => {
     set({ isLoading: true });
     try {
-      await colaboradoresService.deleteColaborador(id);
+      await colaboradoresService.deleteColaborador(id, barbeariaId);
       set((state) => ({
         colaboradores: state.colaboradores.filter((c) => c.id !== id),
         isLoading: false,
@@ -68,10 +85,10 @@ export const useColaboradoresStore = create<ColaboradoresStore>((set, get) => ({
     }
   },
 
-  updatePermissoes: async (id: number, permissoes: number[]) => {
+  updatePermissoes: async (id: string, permissoes: any, barbeariaId: string) => {
     set({ isLoading: true });
     try {
-      const colaborador = await colaboradoresService.updatePermissoes(id, permissoes);
+      const colaborador = await colaboradoresService.updatePermissoes(id, permissoes, barbeariaId);
       set((state) => ({
         colaboradores: state.colaboradores.map((c) => (c.id === id ? colaborador : c)),
         isLoading: false,

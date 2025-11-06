@@ -89,6 +89,36 @@ export default function RootLayout() {
           <Stack.Screen name="barbearias" options={{ headerShown: false }} />
           <Stack.Screen name="barbearias/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="barbearias/novo" options={{ headerShown: false }} />
+          <Stack.Screen name="colaboradores/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="colaboradores/novo" options={{ headerShown: false }} />
+          <Stack.Screen name="servicos/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="servicos/novo" options={{ headerShown: false }} />
+          <Stack.Screen name="produtos/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="produtos/novo" options={{ headerShown: false }} />
+          <Stack.Screen name="estoque/movimentacoes" options={{ headerShown: false }} />
+          <Stack.Screen name="estoque/entrada" options={{ headerShown: false }} />
+          <Stack.Screen name="estoque/saida" options={{ headerShown: false }} />
+          <Stack.Screen name="estoque/ajuste" options={{ headerShown: false }} />
+          <Stack.Screen name="estoque/transferencia" options={{ headerShown: false }} />
+          <Stack.Screen name="estoque/prateleiras/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="estoque/prateleiras/novo" options={{ headerShown: false }} />
+          <Stack.Screen name="atendimentos/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="atendimentos/novo" options={{ headerShown: false }} />
+          <Stack.Screen name="financeiro/despesas-fixas" options={{ headerShown: false }} />
+          <Stack.Screen name="financeiro/despesas-variaveis" options={{ headerShown: false }} />
+          <Stack.Screen name="financeiro/canais" options={{ headerShown: false }} />
+          <Stack.Screen name="financeiro/gastos" options={{ headerShown: false }} />
+          <Stack.Screen name="pote/configuracoes" options={{ headerShown: false }} />
+          <Stack.Screen name="pote/configuracoes/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="pote/configuracoes/novo" options={{ headerShown: false }} />
+          <Stack.Screen name="pote/planos" options={{ headerShown: false }} />
+          <Stack.Screen name="pote/planos/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="pote/planos/novo" options={{ headerShown: false }} />
+          <Stack.Screen name="pote/assinaturas" options={{ headerShown: false }} />
+          <Stack.Screen name="pote/assinaturas/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="pote/assinaturas/novo" options={{ headerShown: false }} />
+          <Stack.Screen name="pote/distribuicoes" options={{ headerShown: false }} />
+          <Stack.Screen name="pote/distribuicoes/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           <Stack.Screen name="+not-found" options={{ headerShown: false }} />

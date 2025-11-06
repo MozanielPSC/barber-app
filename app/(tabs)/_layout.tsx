@@ -85,6 +85,7 @@ export default function MainLayout() {
             clientes: 'Clientes',
             servicos: 'Serviços',
             produtos: 'Produtos',
+            colaboradores: 'Colaboradores',
           };
           return <Header title={titles[route.name] || route.name} />;
         },
@@ -129,6 +130,12 @@ export default function MainLayout() {
         name="produtos"
         options={{
           title: 'Produtos',
+        }}
+      />
+      <Stack.Screen
+        name="colaboradores"
+        options={{
+          title: 'Colaboradores',
         }}
       />
     </Stack>

@@ -1,27 +1,36 @@
 import apiClient from './apiClient';
 
 export const colaboradoresService = {
-  getColaboradores: (params?: any) => {
-    return apiClient.get('/colaboradores', { params });
+  getColaboradores: (barbeariaId: string, busca?: string) => {
+    return apiClient.get('/colaboradores', { 
+      params: { barbearia_id: barbeariaId, busca } 
+    });
   },
 
-  getColaborador: (id: number) => {
-    return apiClient.get(`/colaboradores/${id}`);
+  getColaborador: (id: string, barbeariaId: string) => {
+    return apiClient.get(`/colaboradores/${id}`, {
+      params: { barbearia_id: barbeariaId }
+    });
   },
 
   createColaborador: (data: any) => {
     return apiClient.post('/colaboradores', data);
   },
 
-  updateColaborador: (id: number, data: any) => {
+  updateColaborador: (id: string, data: any) => {
     return apiClient.put(`/colaboradores/${id}`, data);
   },
 
-  deleteColaborador: (id: number) => {
-    return apiClient.delete(`/colaboradores/${id}`);
+  deleteColaborador: (id: string, barbeariaId: string) => {
+    return apiClient.delete(`/colaboradores/${id}`, {
+      params: { barbearia_id: barbeariaId }
+    });
   },
 
-  updatePermissoes: (id: number, permissoes: number[]) => {
-    return apiClient.put(`/colaboradores/${id}/permissoes`, { permissoes });
+  updatePermissoes: (id: string, permissoes: any, barbeariaId: string) => {
+    return apiClient.put(`/colaboradores/${id}/permissoes`, {
+      barbearia_id: barbeariaId,
+      permissoes
+    });
   },
 };

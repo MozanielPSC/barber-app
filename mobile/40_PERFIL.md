@@ -2,57 +2,90 @@
 
 ## Visão Geral
 
-Gerenciamento completo do perfil do usuário logado. Permite editar informações pessoais, alterar senha e foto de perfil.
+Gerenciamento completo do perfil do usuário logado. Permite visualizar informações, editar dados pessoais, alterar senha e foto de perfil. Layout com tabs para organizar as seções.
 
 ## Layout Visual
 
 ### Header
 - **Título**: "Meu Perfil"
-- **Subtítulo**: Tipo de usuário (Proprietário/Colaborador)
+- **Subtítulo**: "Gerencie suas informações pessoais e configurações"
 
-### Card: Foto de Perfil
-- **Avatar Grande**: Círculo 120px
-  - Foto atual ou iniciais
-  - Overlay com ícone de câmera ao hover
-- **Botão**: "Alterar Foto"
-  - Abre seletor de imagem (câmera/galeria)
+### Tabs Navigation (Card)
+- **Tab: Informações** (ícone UserIcon)
+  - Border inferior azul quando ativa
+- **Tab: Editar Perfil** (ícone PencilIcon)
+  - Border inferior azul quando ativa
+- **Tab: Alterar Senha** (ícone KeyIcon)
+  - Border inferior azul quando ativa
 
-### Card: Informações Pessoais
-- **Modo Visualização**:
+### Tab: Informações (Componente `PerfilInfo`)
+
+#### Card: Foto de Perfil
+- **Avatar**: Círculo 96px (w-24 h-24), gradiente azul-roxo
+  - Foto atual (se houver) ou inicial do nome
+  - Botão flutuante com ícone de câmera (azul, canto inferior direito)
+- **Informações**:
   - Nome (grande, bold)
   - Email
-  - Telefone (se houver)
-  - Nome da Barbearia (se proprietário)
-  - Tipo de Usuário (badge)
-  - **Botão**: "Editar Informações"
+  - Tipo de usuário (Proprietário/Colaborador)
+  - Badge com nome da barbearia (se houver)
 
-- **Modo Edição**:
-  - **Nome *** (input text)
-  - **Email** (input email, readonly se colaborador)
-  - **Telefone** (input tel)
-  - **Botões**: Cancelar, Salvar
+#### Card: Informações Pessoais
+- **Grid 2 colunas**:
+  - **Nome Completo**: Label + valor
+  - **Email**: Label + valor
+  - **Tipo de Conta**: Label + valor
+  - **Membro Desde**: Label + data formatada
 
-### Card: Alterar Senha
-- **Título**: "Alterar Senha"
-- **Campos**:
-  - **Senha Atual *** (password)
-  - **Nova Senha *** (password, mínimo 6 caracteres)
-  - **Confirmar Nova Senha *** (password)
-- **Validação**: Nova senha deve coincidir com confirmação
-- **Botão**: "Alterar Senha"
-
-### Card: Informações do Sistema (se proprietário)
-- **Código da Barbearia**: Exibido (para compartilhar com colaboradores)
+#### Card: Informações do Sistema (se proprietário)
+- **Código da Barbearia**: Exibido em destaque
 - **Botão**: "Copiar Código"
+
+### Tab: Editar Perfil (Componente `PerfilEdit`)
+
+#### Formulário
+- **Nome Completo *** (input text obrigatório)
+- **Email *** (input email obrigatório)
+- **Telefone** (input tel, apenas para colaboradores)
+- **Função** (select, apenas para colaboradores):
+  - Opções: Barbeiro, Manicure, Designer, Recepcionista, Assistente, Administrador
+- **Status** (select, apenas para colaboradores):
+  - Opções: Ativo, Inativo
+- **Botão**: "Salvar Alterações" (azul, com spinner quando salvando)
+
+### Tab: Alterar Senha (Componente `PerfilPassword`)
+
+#### Formulário
+- **Senha Atual *** (password, com botão mostrar/ocultar)
+- **Nova Senha *** (password, minlength 6, com botão mostrar/ocultar)
+- **Confirmar Nova Senha *** (password, com botão mostrar/ocultar)
+- **Validação Visual**:
+  - Lista de requisitos com checkmarks:
+    - Pelo menos 6 caracteres
+    - Senhas coincidem
+- **Botão**: "Alterar Senha" (azul, com spinner quando processando)
+
+### Modal: Upload de Foto (Componente `PerfilPhotoUpload`)
+- **Modal**: Overlay escuro, card central
+- **Preview**: Círculo 128px com preview da imagem ou ícone de câmera
+- **Input File**: Hidden, aceita apenas imagens
+- **Validações**:
+  - Tipo: Apenas imagens
+  - Tamanho: Máximo 5MB
+- **Botões**: "Salvar Foto" (azul), "Cancelar" (cinza)
 
 ## Validações
 
 1. **Nome**: Obrigatório
-2. **Email**: Formato válido (se editável)
-3. **Senha**: 
+2. **Email**: Formato válido, obrigatório
+3. **Telefone**: Opcional (apenas colaboradores)
+4. **Senha**: 
    - Mínimo 6 caracteres
    - Nova senha = Confirmação
    - Senha atual deve estar correta
+5. **Foto**: 
+   - Apenas imagens
+   - Máximo 5MB
 
 ## Rotas da API
 
@@ -68,25 +101,35 @@ Gerenciamento completo do perfil do usuário logado. Permite editar informaçõe
     "telefone": "string | null",
     "tipo": "proprietario" | "colaborador",
     "foto_perfil_url_assinada": "string | null",
-    "nome_barbearia": "string | null",
-    "codigo_barbearia": "string | null"
+    "barbearia_nome": "string | null",
+    "codigo_barbearia": "string | null",
+    "funcao": "string | null",
+    "ativo": true,
+    "criado_em": "YYYY-MM-DDTHH:mm:ss.sssZ"
   }
 }
 ```
 
-### PUT /auth/me
+**Nota**: Para colaboradores, pode usar `/auth/me/colaborador` que retorna dados adicionais.
+
+### PUT /auth/perfil
 
 **Request Body:**
 ```json
 {
   "nome": "string",
-  "telefone": "string | null"
+  "email": "string",
+  "telefone": "string | null",
+  "funcao": "string | null",
+  "ativo": true
 }
 ```
 
-**Nota**: Email não pode ser alterado via esta rota.
+**Nota**: Campos `telefone`, `funcao` e `ativo` são apenas para colaboradores.
 
-### POST /auth/me/photo
+**Response:** Retorna o usuário atualizado
+
+### POST /auth/foto-perfil
 
 **Request**: FormData
 - `foto`: Arquivo de imagem (jpg, png, max 5MB)
@@ -94,20 +137,22 @@ Gerenciamento completo do perfil do usuário logado. Permite editar informaçõe
 **Response:**
 ```json
 {
-  "foto_perfil_url_assinada": "string"
+  "foto_perfil_url_assinada": "string",
+  "message": "string"
 }
 ```
 
-### PUT /auth/me/password
+### PUT /auth/alterar-senha
 
 **Request Body:**
 ```json
 {
   "senha_atual": "string",
-  "nova_senha": "string",
-  "confirmar_senha": "string"
+  "nova_senha": "string"
 }
 ```
+
+**Nota**: O campo `confirmar_senha` é validado apenas no frontend. A API recebe apenas `senha_atual` e `nova_senha`.
 
 **Response:**
 ```json
@@ -116,12 +161,15 @@ Gerenciamento completo do perfil do usuário logado. Permite editar informaçõe
 }
 ```
 
-## Stores
+**Nota**: Após alterar a senha, o usuário é deslogado e redirecionado para `/login` após 2 segundos.
 
-- `useAuthStore`:
-  - `fetchUserData()`: Carrega dados do usuário
-  - `updateProfile(updates)`: Atualiza informações
-  - `updateProfilePhoto(fotoUrl)`: Atualiza foto
-  - `changePassword(data)`: Altera senha
+## Stores e Composables
+
+- `useAuth` (composable):
+  - `user`: Reativo com dados do usuário
+  - `refreshUser()`: Atualiza dados do usuário via `GET /auth/me` ou `/auth/me/colaborador`
+  - `updateProfilePhoto(fotoUrl)`: Atualiza URL da foto localmente
+- `useApi`: Para fazer requisições diretas
+- `useAppStore`: Notificações
 
 
