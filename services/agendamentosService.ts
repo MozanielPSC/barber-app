@@ -1,39 +1,43 @@
 import apiClient from './apiClient';
 
 export const agendamentosService = {
-  getAgendamentos: (params?: any) => {
-    return apiClient.get('/agendamentos', { params });
+  getAgendamentos: (params?: {
+    barbearia_id?: number | string;
+    data?: string;
+    data_inicio?: string;
+    data_fim?: string;
+    colaborador_id?: number | string;
+    status?: string;
+  }) => {
+    return apiClient.get('/atendimentos/agendamentos/lista', { params });
   },
 
-  getAgendamento: (id: number) => {
-    return apiClient.get(`/agendamentos/${id}`);
+  getAgendamento: (id: number | string) => {
+    return apiClient.get(`/atendimentos/${id}`);
   },
 
   createAgendamento: (data: any) => {
-    return apiClient.post('/agendamentos', data);
+    return apiClient.post('/atendimentos/agendamento', data);
   },
 
-  updateAgendamento: (id: number, data: any) => {
-    return apiClient.put(`/agendamentos/${id}`, data);
+  updateAgendamento: (id: number | string, data: any) => {
+    return apiClient.put(`/atendimentos/${id}`, data);
   },
 
-  deleteAgendamento: (id: number) => {
-    return apiClient.delete(`/agendamentos/${id}`);
+  deleteAgendamento: (id: number | string, barbearia_id: number | string) => {
+    return apiClient.delete(`/atendimentos/${id}`, { params: { barbearia_id } });
   },
 
-  confirmarAgendamento: (id: number) => {
-    return apiClient.patch(`/agendamentos/${id}/confirmar`);
+  updateStatus: (id: number | string, status: string, barbearia_id: number | string) => {
+    return apiClient.patch(`/atendimentos/${id}/status`, { status, barbearia_id });
   },
 
-  cancelarAgendamento: (id: number, motivo?: string) => {
-    return apiClient.patch(`/agendamentos/${id}/cancelar`, { motivo });
+  getDisponibilidade: (colaboradorId: number | string, params: {
+    data: string;
+    servico_id: number | string;
+    intervalo?: number;
+  }) => {
+    return apiClient.get(`/atendimentos/colaborador/${colaboradorId}/disponibilidade`, { params });
   },
 
-  iniciarAtendimento: (id: number) => {
-    return apiClient.patch(`/agendamentos/${id}/iniciar`);
-  },
-
-  concluirAtendimento: (id: number, observacoes?: string) => {
-    return apiClient.patch(`/agendamentos/${id}/concluir`, { observacoes });
-  },
 };

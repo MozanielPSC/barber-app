@@ -6,4 +6,5 @@ export { useColaboradoresStore } from './colaboradoresStore';
 export { useDashboardStore } from './dashboardStore';
 export { useNotificationsStore } from './notificationsStore';
 export { useServicosStore } from './servicosStore';
+export { useAgendamentosStore } from './agendamentosStore';
 

@@ -26,32 +26,54 @@ Visualização de agendamentos em formato de grade semanal (grid). Mostra colabo
 
 ## Rotas API
 
-### GET /agenda
+### GET /atendimentos/agendamentos/lista
 
 **Query Params:**
 - `barbearia_id` (obrigatório)
-- `data_inicio` (opcional, formato: YYYY-MM-DD)
-- `data_fim` (opcional)
-- `colaborador_id` (opcional)
+- `data` (opcional, formato: YYYY-MM-DD) - Data específica
+- `data_inicio` (opcional, formato: YYYY-MM-DD) - Data inicial do intervalo
+- `data_fim` (opcional, formato: YYYY-MM-DD) - Data final do intervalo
+- `colaborador_id` (opcional) - Filtrar por colaborador
+- `status` (opcional) - Filtrar por status: "agendado", "confirmado", "em_andamento", "concluido", "cancelado", "nao_compareceu"
+
+**Exemplo:**
+```
+GET /atendimentos/agendamentos/lista?barbearia_id=uuid&data=2024-10-15&colaborador_id=uuid
+```
 
 **Response:**
 ```json
 [
   {
     "id": "string",
-    "cliente_id": "string",
-    "cliente_nome": "string",
+    "usuario_id": "string",
+    "barbearia_id": "string",
     "colaborador_id": "string",
-    "colaborador_nome": "string",
-    "data_hora": "string",
+    "cliente_id": "string",
+    "data_atendimento": "2024-10-15",
+    "horario_inicio": "09:00:00",
+    "horario_fim": "09:30:00",
+    "duracao_minutos": 30,
+    "status": "agendado",
+    "origem": "agendamento",
+    "observacoes": "string | null",
+    "cliente": {
+      "id": "string",
+      "nome": "string",
+      "telefone": "string | null"
+    },
+    "colaborador": {
+      "id": "string",
+      "nome": "string"
+    },
     "servicos": [
       {
         "id": "string",
+        "servico_id": "string",
         "nome": "string",
-        "preco": 0
+        "preco": "50.00"
       }
-    ],
-    "status": "agendado" | "em_andamento" | "concluido" | "cancelado"
+    ]
   }
 ]
 ```
@@ -59,77 +81,8 @@ Visualização de agendamentos em formato de grade semanal (grid). Mostra colabo
 ## Stores
 
 - `useAtendimentosStore`: 
-  - `loadAgendamentos(filters)`: Carrega agendamentos
+  - `listarAgendamentos(filters)`: Carrega agendamentos
+    - Filtros: `{ barbearia_id, data?, data_inicio?, data_fim?, colaborador_id?, status? }`
 - `useColaboradoresStore`: Lista colaboradores para colunas
 
-## Implementação React Native
-
-Use `react-native-calendars` ou componente customizado de grid. Para grade semanal, crie grid manual com `View` e `FlatList`.
-
-```tsx
-const AgendaScreen = () => {
-  const [weekStart, setWeekStart] = useState(getWeekStart(new Date()));
-  const [agendamentos, setAgendamentos] = useState([]);
-  const [colaboradores, setColaboradores] = useState([]);
-
-  return (
-    <View>
-      <View style={styles.header}>
-        <Text style={styles.title}>Agenda Semanal</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('NovoAgendamento')}>
-          <PlusIcon />
-          <Text>Novo Agendamento</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Navegação de Semana */}
-      <View style={styles.weekNavigation}>
-        <TouchableOpacity onPress={previousWeek}>
-          <ChevronLeftIcon />
-        </TouchableOpacity>
-        <Text>{formatWeekRange(weekStart)}</Text>
-        <TouchableOpacity onPress={nextWeek}>
-          <ChevronRightIcon />
-        </TouchableOpacity>
-      </View>
-
-      {/* Grid */}
-      <ScrollView horizontal>
-        <View style={styles.grid}>
-          {/* Header com colaboradores */}
-          <View style={styles.gridHeader}>
-            <View style={styles.timeColumn} />
-            {colaboradores.map(colab => (
-              <View key={colab.id} style={styles.colaboradorColumn}>
-                <Text>{colab.nome}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Linhas de horário */}
-          {timeSlots.map(time => (
-            <View key={time} style={styles.gridRow}>
-              <Text style={styles.timeCell}>{time}</Text>
-              {colaboradores.map(colab => {
-                const agendamento = findAgendamento(time, colab.id);
-                return (
-                  <TouchableOpacity
-                    key={colab.id}
-                    style={styles.cell}
-                    onPress={() => agendamento && openDetails(agendamento)}
-                  >
-                    {agendamento && (
-                      <AgendamentoCard agendamento={agendamento} />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-    </View>
-  );
-};
-```
 
