@@ -20,7 +20,7 @@ import { Input } from '../../components/ui/Input';
 interface ServicoSelecionado {
   id: number;
   nome: string;
-  preco: number;
+  preco: number | string;
 }
 
 export default function NovoAgendamentoScreen() {
@@ -102,13 +102,22 @@ export default function NovoAgendamentoScreen() {
     }
   };
 
-  const toggleServico = (servico: ServicoSelecionado) => {
+  const toggleServico = (servico: any) => {
     setServicosSelecionados((prev) => {
       const exists = prev.find((s) => s.id === servico.id);
       if (exists) {
         return prev.filter((s) => s.id !== servico.id);
       }
-      return [...prev, servico];
+      // Garante que o preço seja um número válido
+      const preco = typeof servico.preco === 'string' 
+        ? parseFloat(servico.preco) 
+        : (servico.preco || 0);
+      
+      return [...prev, {
+        id: servico.id,
+        nome: servico.nome,
+        preco: isNaN(preco) ? 0 : preco,
+      }];
     });
   };
 
@@ -515,7 +524,7 @@ export default function NovoAgendamentoScreen() {
                         {new Intl.NumberFormat('pt-BR', {
                           style: 'currency',
                           currency: 'BRL',
-                        }).format(servico.preco)}
+                        }).format(typeof servico.preco === 'string' ? parseFloat(servico.preco) || 0 : servico.preco || 0)}
                       </Text>
                     </View>
                     {isSelected && (
